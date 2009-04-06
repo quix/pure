@@ -11,7 +11,7 @@ describe "two defs on the same line" do
   end
 end
 
-describe "fun" do
+describe "`fun'" do
   describe "given hash of size != 1" do
     it "should raise error" do
       lambda {

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/common"
 
-describe "fun definitions" do
+describe "`fun' definitions" do
   before :all do
     @mod = Module.new {
       include Pure
@@ -23,7 +23,7 @@ describe "fun definitions" do
     }
   end
   
-  it "should be accepted" do
+  it "should work" do
     @mod.compute(:area, :threads => 1).should == (20 + 5)*(30 + 5)
   end
 end
