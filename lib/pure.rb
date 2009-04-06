@@ -1,5 +1,6 @@
 
 require 'pure/def_parser'
+require 'pure/util'
 require 'comp_tree'
 
 module Pure
@@ -8,7 +9,7 @@ module Pure
     def append_features(mod)
       super
       fun_cache = Hash.new
-      DefParser.singleton_class_of(mod).module_eval {
+      Util.singleton_class_of(mod).module_eval {
         define_method :compute do |root, *opts|
           num_threads = (!opts.empty? && opts.first[:threads]) || 1
           instance = Class.new { include mod }.new

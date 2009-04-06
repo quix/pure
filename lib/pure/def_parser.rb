@@ -1,5 +1,6 @@
 
 require 'pure/error'
+require 'pure/util'
 
 # some silliness to fool rcov
 have_ripper = (begin require 'ripper' ; rescue LoadError ; nil ; end) != nil
@@ -32,17 +33,11 @@ module Pure
         file, line_s = backtrace.first.match(%r!\A(.*?):(\d+)!).captures
         return file, line_s.to_i
       end
-  
-      def singleton_class_of(mod)
-        class << mod
-          self
-        end
-      end
     end
       
     def append_features(mod)
       method_added_orig = mod.method(:method_added)
-      DefParser.singleton_class_of(mod).module_eval {
+      Util.singleton_class_of(mod).module_eval {
         define_method(:method_added) { |method_name|
           if method_added_orig
             method_added_orig.call(method_name)
