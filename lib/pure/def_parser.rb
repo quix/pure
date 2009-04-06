@@ -18,9 +18,7 @@ module Pure
   
       def rip(mod, method_name, file, line)
         unless @def_cache.has_key? file
-          processor = DefProcessor.new
-          processor.process(DefProcessor.parse(File.read(file)))
-          @def_cache[file] = processor.defs
+          @def_cache[file] = DefProcessor.new.run(File.read(file))
         end
         found_method_name, *args = @def_cache[file][line]
         unless found_method_name and method_name == found_method_name

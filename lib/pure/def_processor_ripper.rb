@@ -3,18 +3,15 @@ require 'ripper'
   
 module Pure
   class DefProcessor
-    class << self
-      def parse(string)
-        Ripper.sexp(string)
-      end
-    end
-    
     def initialize
       @defs = Hash.new
     end
     
-    attr_reader :defs
-
+    def run(code)
+      process(Ripper.sexp(code))
+      @defs
+    end
+    
     def process_def(sexp)
       method_name = sexp[1][1].to_sym
       line = sexp[1][2][0]

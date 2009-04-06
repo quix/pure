@@ -4,18 +4,15 @@ require 'sexp_processor'
     
 module Pure
   class DefProcessor < SexpProcessor
-    class << self
-      def parse(string)
-        RubyParser.new.parse(string)
-      end
-    end
-    
     def initialize
       super()
       @defs = Hash.new
     end
         
-    attr_reader :defs
+    def run(code)
+      process(RubyParser.new.parse(code))
+      @defs
+    end
         
     def process_defn(sexp)
       method_name = sexp[1]
