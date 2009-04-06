@@ -17,7 +17,7 @@ module Pure
           define_method :compute do |root, *opts|
             num_threads = (!opts.empty? && opts.first[:threads]) || 1
             instance = Class.new { include mod }.new
-            CompTree.build { |driver|
+            CompTree.build do |driver|
               DefParser.defs[mod].each_pair { |method_name, args|
                 driver.define(method_name, *args) { |*objs|
                   instance.send(method_name, *objs)
@@ -27,7 +27,7 @@ module Pure
                 driver.define(node_name, *child_names, &block)
               }
               driver.compute(root, num_threads)
-            }
+            end
           end
   
           define_method :fun do |*args, &block|
