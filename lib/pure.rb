@@ -10,7 +10,7 @@ module Pure
     include DefParser
 
     def append_features(mod)
-      unless @registered_modules[mod]
+      unless @registered_modules.has_key? mod
         super
         fun_cache = Hash.new
         Util.singleton_class_of(mod).module_eval do
@@ -40,14 +40,21 @@ module Pure
                   end
                   arg.first
                 else
-                  [arg.to_sym, []]
+                  [arg, []]
                 end
               else
                 raise ArgumentError,
                 "wrong number of arguments (#{args.size} for 1)"
               end
             )
-            fun_cache[node_name] = [child_names, block]
+            child_syms = (
+              if child_names.is_a? Enumerable
+                child_names.map { |t| t.to_sym }
+              else
+                child_names.to_sym
+              end
+            )
+            fun_cache[node_name.to_sym] = [child_syms, block]
           end
         end
         @registered_modules[mod] = true
