@@ -9,11 +9,11 @@ module Pure
     def append_features(mod)
       super
       fun_cache = Hash.new
-      Util.singleton_class_of(mod).module_eval {
+      Util.singleton_class_of(mod).module_eval do
         define_method :compute do |root, *opts|
           num_threads = (!opts.empty? && opts.first[:threads]) || 1
           instance = Class.new { include mod }.new
-          CompTree.build do |driver|
+          CompTree.build { |driver|
             DefParser[mod].each_pair { |method_name, args|
               driver.define(method_name, *args) { |*objs|
                 instance.send(method_name, *objs)
@@ -23,7 +23,7 @@ module Pure
               driver.define(node_name, *child_names, &block)
             }
             driver.compute(root, num_threads)
-          end
+          }
         end
 
         define_method :fun do |*args, &block|
@@ -45,7 +45,7 @@ module Pure
           )
           fun_cache[node_name] = [child_names, block]
         end
-      }
+      end
     end
   end
 end 
