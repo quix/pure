@@ -1,8 +1,8 @@
 
 = Pure
 
-Pure functional programming in Ruby with automatic parallelism and
-lazy evaluation.
+Automatic parallelism and lazy evaluation using pure functional
+programming in Ruby.
 
 == Synopsis
 
