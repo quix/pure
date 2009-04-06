@@ -13,15 +13,13 @@ module Pure
     @defs = Hash.new { |hash, key| hash[key] = Hash.new }
   
     class << self
-      def [](mod)
-        @defs[mod]
-      end
+      attr_accessor :defs
   
-      def rip(mod, method_name, file, line)
-        unless @def_cache.has_key? file
+      def parse(mod, method_name, file, line)
+        def_cache_file = @def_cache[file] || (
           @def_cache[file] = DefProcessor.new.run(File.read(file))
-        end
-        found_method_name, *args = @def_cache[file][line]
+        )
+        found_method_name, *args = def_cache_file[line]
         unless found_method_name and method_name == found_method_name
           raise ParseError,
           "failure parsing #{mod.name}##{method_name} at #{file}:#{line}" 
@@ -43,7 +41,7 @@ module Pure
             method_added_orig.call(method_name)
           end
           file, line = DefParser.file_line(caller)
-          args = DefParser.rip(mod, method_name, file, line)
+          args = DefParser.parse(mod, method_name, file, line)
         }
       }
     end
