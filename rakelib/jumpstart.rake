@@ -5,8 +5,8 @@ require 'rake/contrib/rubyforgepublisher'
 require 'rake/clean'
 require 'rdoc/rdoc'
 
-require "quix/simple_installer"
-require "quix/ruby"
+require "jumpstart/simple_installer"
+require "jumpstart/ruby"
 
 ######################################################################
 # constants
@@ -168,12 +168,12 @@ end
 
 desc "direct install (no gem)"
 task :install do
-  Quix::SimpleInstaller.new.run([])
+  Jumpstart::SimpleInstaller.new.run([])
 end
 
 desc "direct uninstall (no gem)"
 task :uninstall do
-  Quix::SimpleInstaller.new.run(["--uninstall"])
+  Jumpstart::SimpleInstaller.new.run(["--uninstall"])
 end
 
 ######################################################################
@@ -333,6 +333,6 @@ end
 
 def run_ruby_on_each(*files)
   files.each { |file|
-    Quix::Ruby.run_or_raise("-w", file)
+    Jumpstart::Ruby.run_or_raise("-w", file)
   }
 end

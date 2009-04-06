@@ -3,7 +3,7 @@ require 'tempfile'
 
 here = Pathname(__FILE__).dirname
 require here + "../spec/common"
-require 'quix/ruby'
+require 'jumpstart/ruby'
 root = here + ".."
 readme = root + "README"
 lib = root + "lib"
@@ -24,7 +24,7 @@ describe readme do
         Tempfile.open("pure-readme") { |file|
           file.puts code
           file.close
-          result = `"#{Quix::Ruby::EXECUTABLE}" "#{file.path}"`
+          result = `"#{Jumpstart::Ruby::EXECUTABLE}" "#{file.path}"`
           raise unless $?.exitstatus
           result.chomp.should == expected
         }

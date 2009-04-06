@@ -1,7 +1,7 @@
 
 require 'rbconfig'
 
-module Quix
+module Jumpstart
   module Ruby
     EXECUTABLE = lambda {
       name = File.join(
