@@ -4,15 +4,17 @@ require 'pure/util'
 require 'comp_tree'
 
 module Pure
-  @registered_modules = Hash.new
+  @fun_cache = Hash.new
 
   class << self
     include DefParser
 
+    attr_accessor :fun_cache
+
     def append_features(mod)
-      unless @registered_modules.has_key? mod
+      unless @fun_cache.has_key? mod
         super
-        fun_cache = Hash.new
+        @fun_cache[mod] = Hash.new
         Util.singleton_class_of(mod).module_eval do
           define_method :compute do |root, *opts|
             num_threads = (!opts.empty? && opts.first[:threads]) || 1
@@ -23,41 +25,42 @@ module Pure
                   instance.send(method_name, *objs)
                 }
               }
-              fun_cache.each_pair { |node_name, (child_names, block)|
+              Pure.fun_cache.each_pair { |node_name, (child_names, block)|
                 driver.define(node_name, *child_names, &block)
               }
               driver.compute(root, num_threads)
             end
           end
   
-          define_method :fun do |*args, &block|
-            node_name, child_names = (
-              if args.size == 1
-                arg = args.first
-                if arg.is_a? Hash
-                  unless arg.size == 1
-                    raise ArgumentError, "`fun' given hash of size != 1"
+          eval %{
+            def fun(*args, &block)
+              node_name, child_names = (
+                if args.size == 1
+                  arg = args.first
+                  if arg.is_a? Hash
+                    unless arg.size == 1
+                      raise ArgumentError, "`fun' given hash of size != 1"
+                    end
+                    arg.to_a.first
+                  else
+                    [arg, []]
                   end
-                  arg.first
                 else
-                  [arg, []]
+                  raise ArgumentError,
+                  "wrong number of arguments (\#{args.size} for 1)"
                 end
-              else
-                raise ArgumentError,
-                "wrong number of arguments (#{args.size} for 1)"
-              end
-            )
-            child_syms = (
-              if child_names.is_a? Enumerable
-                child_names.map { |t| t.to_sym }
-              else
-                child_names.to_sym
-              end
-            )
-            fun_cache[node_name.to_sym] = [child_syms, block]
-          end
+              )
+              child_syms = (
+                if child_names.is_a? Enumerable
+                  child_names.map { |t| t.to_sym }
+                else
+                  child_names.to_sym
+                end
+              )
+              Pure.fun_cache[node_name.to_sym] = [child_syms, block]
+            end
+          }
         end
-        @registered_modules[mod] = true
       end
     end
   end
