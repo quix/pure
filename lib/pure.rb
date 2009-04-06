@@ -32,7 +32,7 @@ module Pure
             end
           end
   
-          eval %{
+          eval <<-eval_end
             def fun(*args, &block)
               node_name, child_names = (
                 if args.size == 1
@@ -59,7 +59,7 @@ module Pure
               )
               Pure.fun_cache[node_name.to_sym] = [child_syms, block]
             end
-          }
+          eval_end
         end
       end
     end
