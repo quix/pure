@@ -1,7 +1,7 @@
 
 = Pure
 
-Automatic parallelism and lazy evaluation using pure functional
+Automatic parallelism and lazy evaluation with pure functional
 programming in Ruby.
 
 == Synopsis
@@ -36,5 +36,15 @@ programming in Ruby.
   puts((7 + 2)*(5 + 2))
   # => 63
 
-==
+== Overview
 
+Method names and argument names have lexicographical meaning within a
+module that includes Pure.  Above, the +width+ argument to +area+
+corresponds, by its literal name, to the +width+ method.
+
+== Implementation
+
+The "ripper" parser is used if it exists, otherwise ruby_parser is
+used.
+
+Pure has been tested on MRI 1.8.6, 1.8.7, 1.9.1 and the latest jruby.
