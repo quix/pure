@@ -5,7 +5,7 @@ here = Pathname(__FILE__).dirname
 require here + "../spec/common"
 require 'jumpstart/ruby'
 root = here + ".."
-readme = root + "README"
+readme = root + "README.rdoc"
 lib = root + "lib"
 
 describe readme do
