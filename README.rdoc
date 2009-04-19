@@ -1,8 +1,9 @@
 
 = Pure
 
-Automatic parallelism and lazy evaluation with pure functional
-programming in Ruby.
+== Summary
+
+Lanugage-level support for automatic parallelism and lazy evaluation.
 
 == Synopsis
 

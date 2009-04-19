@@ -1,7 +1,7 @@
 
 require 'rbconfig'
 
-module Jumpstart
+class Jumpstart
   module Ruby
     EXECUTABLE = lambda {
       name = File.join(

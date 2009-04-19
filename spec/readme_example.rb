@@ -3,12 +3,13 @@ require 'tempfile'
 
 here = Pathname(__FILE__).dirname
 require here + "../spec/common"
-require 'jumpstart/ruby'
 root = here + ".."
 readme = root + "README.rdoc"
 lib = root + "lib"
 
 describe readme do
+  $LOAD_PATH.unshift root + "devel"
+  require "jumpstart/ruby"
   ["Synopsis"].each { |section|
     describe section do
       it "should run as claimed" do

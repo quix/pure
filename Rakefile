@@ -1,3 +1,7 @@
+$LOAD_PATH.unshift "devel"
 
-# rakelib generates tasks 
+require "jumpstart"
 
+Jumpstart.new("pure") do |s|
+  s.developer("James M. Lawrence", "quixoticsycophant@gmail.com")
+end
