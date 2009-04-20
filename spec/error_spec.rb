@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec/common"
+require File.dirname(__FILE__) + "/common"
 
 describe "error checking:" do
   describe "two defs on the same line" do

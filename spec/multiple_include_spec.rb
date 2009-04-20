@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/../spec/common"
+require File.dirname(__FILE__) + "/common"
 
 describe "subsequent `include Pure'" do
   it "should be ignored" do

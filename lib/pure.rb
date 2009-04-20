@@ -16,8 +16,8 @@ module Pure
         super
         @fun_cache[mod] = Hash.new
         Util.singleton_class_of(mod).module_eval do
-          define_method :compute do |root, *opts|
-            num_threads = (!opts.empty? && opts.first[:threads]) || 1
+          define_method :compute do |root, opts|
+            num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
             instance = Class.new { include mod }.new
             CompTree.build do |driver|
               DefParser.defs[mod].each_pair { |method_name, args|

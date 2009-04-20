@@ -2,7 +2,7 @@ require 'pathname'
 require 'tempfile'
 
 here = Pathname(__FILE__).dirname
-require here + "../spec/common"
+require here + "common"
 root = here + ".."
 readme = root + "README.rdoc"
 lib = root + "lib"
