@@ -23,10 +23,10 @@ describe "timed example" do
   end
 
   it "should run with 1 thread" do
-    Benchmark.measure { @compute.call(1) }.real.should be_close(0.5, 0.01)
+    Benchmark.measure { @compute.call(1) }.real.should be_close(0.5, 0.1)
   end
 
   it "should be 2x faster with 2 threads" do
-    Benchmark.measure { @compute.call(2) }.real.should be_close(0.25, 0.01)
+    Benchmark.measure { @compute.call(2) }.real.should be_close(0.25, 0.05)
   end
 end
