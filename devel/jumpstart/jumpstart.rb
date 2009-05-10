@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 
 require 'rubygems'
 require 'ostruct'
@@ -573,7 +573,7 @@ class Jumpstart
 
   def run_ruby_on_each(*files)
     files.each { |file|
-      Ruby.run_or_raise("-w", file)
+      Ruby.run("-w", file)
     }
   end
 

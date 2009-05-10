@@ -19,20 +19,13 @@ class Jumpstart
 
     class << self
       def run(*args)
-        system(EXECUTABLE, *args)
-      end
-
-      def run_or_raise(*args)
         cmd = [EXECUTABLE, *args]
         unless system(*cmd)
-          msg = (
-            "failed to launch ruby: " +
-            "system(*#{cmd.inspect}) failed with status #{$?.exitstatus}"
-          )
-          raise msg
+          cmd_str = cmd.map { |t| "'#{t}'" }.join(", ")
+          raise "system(#{cmd_str}) failed with status #{$?.exitstatus}"
         end
       end
-
+      
       def with_warnings(value = true)
         previous = $VERBOSE
         $VERBOSE = value
