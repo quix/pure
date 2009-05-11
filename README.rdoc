@@ -3,7 +3,7 @@
 
 == Summary
 
-Lanugage-level support for automatic parallelism and lazy evaluation.
+Language-level support for automatic parallelism and lazy evaluation.
 
 == Synopsis
 
