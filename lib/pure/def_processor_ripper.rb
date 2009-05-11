@@ -22,7 +22,7 @@ module Pure
         when :paren
           sexp[2][1]
         else
-          raise "unforseen def syntax"
+          raise "unforeseen def syntax"
         end
       )
       args = (
