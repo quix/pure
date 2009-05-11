@@ -37,7 +37,9 @@ Lanugage-level support for automatic parallelism and lazy evaluation.
   puts((7 + 2)*(5 + 2))
   # => 63
 
-== Overview
+== Description
+
++Pure+ is an importation of the pure functional paradigm into Ruby.
 
 Method names and argument names have lexicographical meaning within a
 module that includes Pure.  Above, the +width+ argument to +area+

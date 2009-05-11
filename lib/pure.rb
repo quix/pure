@@ -4,6 +4,8 @@ require 'pure/util'
 require 'comp_tree'
 
 module Pure
+  VERSION = "0.1.0"
+
   @fun_cache = Hash.new
 
   class << self
