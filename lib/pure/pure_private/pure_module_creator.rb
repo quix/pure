@@ -68,10 +68,11 @@ module Pure
             fun_mod.module_eval {
               define_method(node_sym, &block)
             }
+            spec = DefParser.parse(fun_mod, :__fun, caller.first)
             method_database[fun_mod][node_sym] = {
               :name => node_sym,
               :args => child_syms,
-              :sexp => :missing,
+              :sexp => spec[:sexp],
             }
             nil
           end

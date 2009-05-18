@@ -40,10 +40,24 @@ module Pure
         }
       end
 
+      def process_fun(sexp)
+        line = sexp[1][1][2][0]
+        @defs[line] = {
+          :name => :__fun,
+          :sexp => sexp,
+        }
+      end
+
       def process(sexp)
         if sexp.is_a?(Array)
           if sexp.first == :def
             process_def(sexp)
+          elsif sexp.first == :method_add_block and
+              sexp[1].is_a?(Array) and
+              sexp[1][0] == :command and
+              sexp[1][1].is_a?(Array) and
+              sexp[1][1][1] == "fun"
+            process_fun(sexp)
           else
             sexp.each { |sub_sexp|
               process(sub_sexp)

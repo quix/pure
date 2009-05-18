@@ -15,15 +15,28 @@ module Pure
         @defs
       end
         
-      def process_defn(sexp)
-        name = sexp[1]
-        args = sexp[2].to_a[1..-1]
-        @defs[sexp.line] = {
-          :name => name,
-          :args => args,
-          :sexp => sexp.dup,
-        }
-        sexp.clear
+      def process(sexp)
+        if sexp[0] == :defn
+          name = sexp[1]
+          args = sexp[2].to_a[1..-1]
+          @defs[sexp.line] = {
+            :name => name,
+            :args => args,
+            :sexp => sexp.dup,
+          }
+          sexp.clear
+        elsif sexp[0] == :iter and
+            sexp[1][0] == :call and
+            sexp[1][1] == nil and
+            sexp[1][2] == :fun
+          @defs[sexp[1].line] = {
+            :name => :__fun,
+            :sexp => sexp.dup,
+          }
+          sexp.clear
+        else
+          super
+        end
       end
     end
   end
