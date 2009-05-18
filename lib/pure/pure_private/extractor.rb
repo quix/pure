@@ -13,6 +13,8 @@ module Pure
       @cache = Hash.new
 
       class << self
+        include Util
+
         def extract(mod, method_name, backtrace)
           file, line = file_line(backtrace)
           defs = @cache[file] || (
@@ -24,11 +26,6 @@ module Pure
             "failure parsing #{mod.name}##{method_name} at #{file}:#{line}" 
           end
           spec
-        end
-
-        def file_line(backtrace)
-          file, line = backtrace.match(%r!\A(.*?):(\d+)!).captures
-          return file, line.to_i
         end
       end
     end
