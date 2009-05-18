@@ -3,7 +3,7 @@ require 'ripper'
   
 module Pure
   module PurePrivate
-    class DefProcessor
+    class ExtractorProcessor
       def initialize
         @defs = Hash.new
       end

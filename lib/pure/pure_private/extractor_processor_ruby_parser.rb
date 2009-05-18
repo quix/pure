@@ -4,7 +4,7 @@ require 'sexp_processor'
     
 module Pure
   module PurePrivate
-    class DefProcessor < SexpProcessor
+    class ExtractorProcessor < SexpProcessor
       def initialize
         super()
         @defs = Hash.new

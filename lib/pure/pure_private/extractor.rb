@@ -5,18 +5,18 @@ require 'pure/pure_private/util'
 # some silliness to fool rcov
 have_ripper = (begin require 'ripper' ; rescue LoadError ; nil ; end) != nil
 suffix = have_ripper ? "ripper" : "ruby_parser"
-require "pure/pure_private/def_processor_#{suffix}"
+require "pure/pure_private/extractor_processor_#{suffix}"
 
 module Pure
   module PurePrivate
-    module DefParser
-      @def_cache = Hash.new
+    module Extractor
+      @cache = Hash.new
 
       class << self
-        def parse(mod, method_name, backtrace)
+        def extract(mod, method_name, backtrace)
           file, line = file_line(backtrace)
-          defs = @def_cache[file] || (
-            @def_cache[file] = DefProcessor.new.run(File.read(file))
+          defs = @cache[file] || (
+            @cache[file] = ExtractorProcessor.new.run(File.read(file))
           )
           spec = defs[line]
           unless spec[:name] and spec[:name] == method_name

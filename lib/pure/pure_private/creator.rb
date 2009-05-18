@@ -1,11 +1,11 @@
 
-require 'pure/pure_private/def_parser'
+require 'pure/pure_private/extractor'
 require 'pure/pure_private/util'
 require 'comp_tree'
 
 module Pure
   module PurePrivate
-    module PureModuleCreator
+    module Creator
       extend Util
 
       METHOD_DATABASE = Hash.new { |hash, key|
@@ -68,7 +68,7 @@ module Pure
             fun_mod.module_eval {
               define_method(node_sym, &block)
             }
-            spec = DefParser.parse(fun_mod, :__fun, caller.first)
+            spec = Extractor.extract(fun_mod, :__fun, caller.first)
             method_database[fun_mod][node_sym] = {
               :name => node_sym,
               :args => child_syms,
@@ -83,7 +83,7 @@ module Pure
         singleton_class_of(mod).module_eval do
           define_method :method_added do |method_name|
             method_database[mod][method_name] = (
-              DefParser.parse(mod, method_name, caller.first)
+              Extractor.extract(mod, method_name, caller.first)
             )
           end
         end
