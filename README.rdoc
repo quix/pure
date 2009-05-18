@@ -41,8 +41,15 @@ Language-level support for automatic parallelism and lazy evaluation.
 +Pure+ is an importation of the pure functional paradigm into Ruby.
 
 Method names and argument names have lexicographical meaning within a
-module that includes Pure.  Above, the +width+ argument to +area+
-corresponds, by its literal name, to the +width+ method.
++pure+ block.  Above, the +width+ argument to +area+ corresponds, by
+its literal name, to the +width+ method, for example.
+
++pure+ returns a module which may be included into other +pure+ blocks.
+
+Implementation details are placed inside Pure::PurePrivate, making
+<tt>include Pure</tt> a hygienic operation.
+
+Pure does not modify any of the standard classes.
 
 == Implementation
 
