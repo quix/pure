@@ -6,6 +6,8 @@ require 'comp_tree'
 module Pure
   module PurePrivate
     module PureModuleCreator
+      extend Util
+
       METHOD_DATABASE = Hash.new { |hash, key|
         hash[key] = Hash.new
       }
@@ -13,7 +15,7 @@ module Pure
       module_function
 
       def define_compute(mod, method_database)
-        Util.singleton_class_of(mod).module_eval do
+        singleton_class_of(mod).module_eval do
           define_method :compute do |root, opts|
             num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
             instance = Class.new { include mod }.new
@@ -37,8 +39,8 @@ module Pure
       end
 
       def define_fun(mod, fun_mod, method_database)
-        Util.singleton_class_of(mod).module_eval do
-          define_method :fun do |*args, &fun_block|
+        singleton_class_of(mod).module_eval do
+          define_method :fun do |*args, &block|
             node_name, child_names = (
               if args.size == 1
                 arg = args.first
@@ -64,7 +66,7 @@ module Pure
             )
             node_sym = node_name.to_sym
             fun_mod.module_eval {
-              define_method(node_sym, &fun_block)
+              define_method(node_sym, &block)
             }
             method_database[fun_mod][node_sym] = {
               :name => node_sym,
@@ -77,7 +79,7 @@ module Pure
       end
 
       def define_method_added(mod, method_database)
-        Util.singleton_class_of(mod).module_eval do
+        singleton_class_of(mod).module_eval do
           define_method :method_added do |method_name|
             file, line = DefParser.file_line(caller)
             method_database[mod][method_name] = (
