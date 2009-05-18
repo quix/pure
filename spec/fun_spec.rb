@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + "/common"
 
 describe "`fun' definitions" do
-  before :all do
-    @normal = pure do
+  it "should work with symbols only" do
+    pure do
       fun :area => [:width, :height] do |w, h|
         w*h
       end
@@ -18,9 +18,11 @@ describe "`fun' definitions" do
       fun :border do
         5
       end
-    end
+    end.compute(:area, :threads => 4).should == (20 + 5)*(30 + 5)
+  end
 
-    @mixed = pure do
+  it "should work with mixed symbols and strings" do
+    pure do
       fun :area => [:width, "height"] do |w, h|
         w*h
       end
@@ -36,15 +38,7 @@ describe "`fun' definitions" do
       fun :border do
         5
       end
-    end
-  end
-  
-  it "should work with symbols only" do
-    @normal.compute(:area, :threads => 4).should == (20 + 5)*(30 + 5)
-  end
-
-  it "should work with mixed symbols and strings" do
-    @mixed.compute(:area, :threads => 4).should == (20 + 5)*(30 + 5)
+    end.compute(:area, :threads => 4).should == (20 + 5)*(30 + 5)
   end
 
   it "should work with `def' definitions" do
