@@ -2,9 +2,7 @@ require File.dirname(__FILE__) + "/common"
 
 describe "basic computation" do
   before :all do
-    @mod = Module.new {
-      include Pure
-      
+    @mod = pure do
       def area(width, height)
         width*height
       end
@@ -20,7 +18,7 @@ describe "basic computation" do
       def border
         5
       end
-    }
+    end
   end
   
   max_threads = 50

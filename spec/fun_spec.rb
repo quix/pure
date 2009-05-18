@@ -2,9 +2,7 @@ require File.dirname(__FILE__) + "/common"
 
 describe "`fun' definitions" do
   before :all do
-    @normal = Module.new do
-      include Pure
-      
+    @normal = pure do
       fun :area => [:width, :height] do |w, h|
         w*h
       end
@@ -22,9 +20,7 @@ describe "`fun' definitions" do
       end
     end
 
-    @mixed = Module.new do
-      include Pure
-      
+    @mixed = pure do
       fun :area => [:width, "height"] do |w, h|
         w*h
       end

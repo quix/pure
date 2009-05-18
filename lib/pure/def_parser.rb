@@ -13,7 +13,7 @@ module Pure
     @defs = Hash.new { |hash, key| hash[key] = Hash.new }
   
     class << self
-      attr_accessor :defs
+      attr_reader :defs
   
       def parse(mod, method_name, file, line)
         def_cache_file = @def_cache[file] || (
@@ -31,19 +31,6 @@ module Pure
         file, line_s = backtrace.first.match(%r!\A(.*?):(\d+)!).captures
         return file, line_s.to_i
       end
-    end
-      
-    def append_features(mod)
-      method_added_orig = mod.method(:method_added)
-      Util.singleton_class_of(mod).module_eval {
-        define_method(:method_added) { |method_name|
-          if method_added_orig
-            method_added_orig.call(method_name)
-          end
-          file, line = DefParser.file_line(caller)
-          args = DefParser.parse(mod, method_name, file, line)
-        }
-      }
     end
   end
 end

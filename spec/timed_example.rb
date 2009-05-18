@@ -3,9 +3,7 @@ require 'benchmark'
 
 describe "timed example" do
   before :all do
-    @mod = Module.new do
-      include Pure
-
+    @mod = pure do
       def root(a, b)
       end
         

@@ -4,10 +4,9 @@ describe "error checking:" do
   describe "two defs on the same line" do
     it "should raise error" do
       lambda {
-        Module.new {
-          include Pure
+        pure do
           def x ; end ; def y ; end
-        }
+        end
       }.should raise_error(Pure::ParseError)
     end
   end
@@ -16,11 +15,10 @@ describe "error checking:" do
     describe "given hash of size != 1" do
       it "should raise error" do
         lambda {
-          Module.new {
-            include Pure
+          pure do
             fun :x => 1, :y => 2 do
             end
-          }
+          end
         }.should raise_error(ArgumentError)
       end
     end
@@ -28,11 +26,10 @@ describe "error checking:" do
     describe "given more than 1 argument" do
       it "should raise error" do
         lambda {
-          Module.new {
-            include Pure
+          pure do
             fun :x, :y do
             end
-          }
+          end
         }.should raise_error(ArgumentError)
       end
     end

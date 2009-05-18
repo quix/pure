@@ -5,3 +5,6 @@ require 'pure'
 require 'pathname'
 require 'spec'
 
+include Pure
+
+
