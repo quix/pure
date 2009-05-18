@@ -31,7 +31,7 @@ module Pure
             sexp[1][2] == :fun
           @defs[sexp[1].line] = {
             :name => :__fun,
-            :sexp => sexp.dup,
+            :sexp => [sexp[2], sexp[3]],
           }
           sexp.clear
         else
