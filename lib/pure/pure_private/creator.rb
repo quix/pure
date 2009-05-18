@@ -60,7 +60,7 @@ module Pure
                 if child_names.is_a? Enumerable
                   child_names.map { |t| t.to_sym }
                 else
-                  child_names.to_sym
+                  [child_names.to_sym]
                 end
               )
               node_sym = node_name.to_sym
