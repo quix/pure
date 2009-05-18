@@ -17,14 +17,25 @@ module Pure
         num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
         instance = Class.new { include mod }.new
         CompTree.build do |driver|
-          DefParser.defs[mod].each_pair { |method_name, args|
-            driver.define(method_name, *args) { |*objs|
-              instance.send(method_name, *objs)
-            }
-          }
+          # 'fun' definitions
           fun_cache.each_pair { |node_name, (child_names, fun_block)|
             driver.define(node_name, *child_names, &fun_block)
           }
+
+          # 'def' definitions
+          mod.ancestors.each { |ancestor|
+            if defs = DefParser.defs[ancestor]
+              defs.each_pair { |method_name, args|
+                existing_node = driver.nodes[method_name]
+                if existing_node.nil? or existing_node.function.nil?
+                  driver.define(method_name, *args) { |*objs|
+                    instance.send(method_name, *objs)
+                  }
+                end
+              }
+            end
+          }
+
           driver.compute(root, num_threads)
         end
       end
