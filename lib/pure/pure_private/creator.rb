@@ -67,7 +67,7 @@ module Pure
               fun_mod.module_eval {
                 define_method(node_sym, &block)
               }
-              spec = Extractor.extract(fun_mod, :__fun, caller.first)
+              spec = Extractor.extract(:__fun, caller)
               method_database[fun_mod][node_sym] = {
                 :name => node_sym,
                 :args => child_syms,
@@ -82,7 +82,7 @@ module Pure
           singleton_class_of(mod).module_eval do
             define_method :method_added do |method_name|
               method_database[mod][method_name] = (
-                Extractor.extract(mod, method_name, caller.first)
+                Extractor.extract(method_name, caller)
               )
             end
           end

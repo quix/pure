@@ -15,15 +15,15 @@ module Pure
       class << self
         include Util
 
-        def extract(mod, method_name, backtrace)
-          file, line = file_line(backtrace)
+        def extract(method_name, backtrace)
+          file, line = file_line(backtrace.first)
           defs = @cache[file] || (
             @cache[file] = ExtractorProcessor.new.run(File.read(file))
           )
           spec = defs[line]
           unless spec[:name] and spec[:name] == method_name
             raise PurePrivate::Error::ParseError,
-            "failure parsing #{mod.name}##{method_name} at #{file}:#{line}" 
+            "failure parsing #{method_name} at #{file}:#{line}" 
           end
           spec
         end
