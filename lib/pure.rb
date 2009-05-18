@@ -12,17 +12,14 @@ module Pure
 
   module_function
 
-  def pure(&block)
-    mod = Module.new
-    fun_mod = Module.new
-
+  def define_compute(mod, method_database)
     Util.singleton_class_of(mod).module_eval do
       define_method :compute do |root, opts|
         num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
         instance = Class.new { include mod }.new
         CompTree.build do |driver|
           mod.ancestors.each { |ancestor|
-            if defs = METHOD_DATABASE[ancestor]
+            if defs = method_database[ancestor]
               defs.each_pair { |method_name, args|
                 existing_node = driver.nodes[method_name]
                 if existing_node.nil? or existing_node.function.nil?
@@ -36,7 +33,11 @@ module Pure
           driver.compute(root, num_threads)
         end
       end
-      
+    end
+  end
+
+  def define_fun(mod, fun_mod, method_database)
+    Util.singleton_class_of(mod).module_eval do
       define_method :fun do |*args, &fun_block|
         node_name, child_names = (
           if args.size == 1
@@ -65,22 +66,31 @@ module Pure
         fun_mod.module_eval {
           define_method(node_sym, &fun_block)
         }
-        METHOD_DATABASE[fun_mod][node_sym] = child_syms
+        method_database[fun_mod][node_sym] = child_syms
         nil
       end
+    end
+  end
 
+  def define_method_added(mod, method_database)
+    Util.singleton_class_of(mod).module_eval do
       define_method :method_added do |method_name|
         file, line = DefParser.file_line(caller)
-        METHOD_DATABASE[mod][method_name] = (
+        method_database[mod][method_name] = (
           DefParser.parse(mod, method_name, file, line)
         )
       end
     end
+  end
 
+  def pure(&block)
+    mod = Module.new
+    fun_mod = Module.new
+    define_compute(mod, METHOD_DATABASE)
+    define_fun(mod, fun_mod, METHOD_DATABASE)
+    define_method_added(mod, METHOD_DATABASE)
     mod.module_eval(&block)
-    mod.module_eval {
-      include fun_mod
-    }
+    mod.module_eval { include fun_mod }
     mod
   end
 end
