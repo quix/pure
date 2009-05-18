@@ -81,9 +81,8 @@ module Pure
       def define_method_added(mod, method_database)
         singleton_class_of(mod).module_eval do
           define_method :method_added do |method_name|
-            file, line = DefParser.file_line(caller)
             method_database[mod][method_name] = (
-              DefParser.parse(mod, method_name, file, line)
+              DefParser.parse(mod, method_name, caller.first)
             )
           end
         end

@@ -13,7 +13,8 @@ module Pure
       @def_cache = Hash.new
 
       class << self
-        def parse(mod, method_name, file, line)
+        def parse(mod, method_name, backtrace)
+          file, line = file_line(backtrace)
           defs = @def_cache[file] || (
             @def_cache[file] = DefProcessor.new.run(File.read(file))
           )
@@ -26,8 +27,8 @@ module Pure
         end
 
         def file_line(backtrace)
-          file, line_s = backtrace.first.match(%r!\A(.*?):(\d+)!).captures
-          return file, line_s.to_i
+          file, line = backtrace.match(%r!\A(.*?):(\d+)!).captures
+          return file, line.to_i
         end
       end
     end
