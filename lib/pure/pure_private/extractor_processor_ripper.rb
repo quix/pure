@@ -46,17 +46,31 @@ module Pure
       end
 
       def process_fun(sexp)
-        if sexp.first == :method_add_block and
-            sexp[1].is_a?(Array) and
-            sexp[1][0] == :command and
-            sexp[1][1].is_a?(Array) and
-            sexp[1][1][1] == "fun"
-          line = sexp[1][1][2][0]
-          @defs[line] = {
-            :name => :__fun,
-            :sexp => sexp,
-          }
-          true
+        if sexp[0] == :method_add_block and sexp[1].is_a?(Array)
+          line = (
+            if sexp[1][0] == :command and
+                sexp[1][1].is_a?(Array) and
+                sexp[1][1][1] == "fun"
+              sexp[1][1][2][0]
+            elsif sexp[1][0] == :method_add_arg and
+                sexp[1][1].is_a?(Array) and
+                sexp[1][1][0] == :fcall and
+                sexp[1][1][1].is_a?(Array) and
+                sexp[1][1][1][1] == "fun"
+              sexp[1][1][1][2][0]
+            else
+              nil
+            end
+          )
+          if line
+            @defs[line] = {
+              :name => :__fun,
+              :sexp => sexp[2],
+            }
+            true
+          else
+            false
+          end
         else
           false
         end
