@@ -14,7 +14,7 @@ module Pure
       end
 
       def process_def(sexp)
-        method_name = sexp[1][1].to_sym
+        name = sexp[1][1].to_sym
         line = sexp[1][2][0]
         params = (
           case sexp[2].first
@@ -33,7 +33,11 @@ module Pure
             params[1].map { |t| t[1].to_sym }
           end
         )
-        @defs[line] = [method_name, *args]
+        @defs[line] = {
+          :name => name,
+          :args => args,
+          :sexp => sexp,
+        }
       end
 
       def process(sexp)

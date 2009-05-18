@@ -14,15 +14,15 @@ module Pure
 
       class << self
         def parse(mod, method_name, file, line)
-          def_cache_file = @def_cache[file] || (
+          defs = @def_cache[file] || (
             @def_cache[file] = DefProcessor.new.run(File.read(file))
           )
-          found_method_name, *args = def_cache_file[line]
-          unless found_method_name and method_name == found_method_name
+          spec = defs[line]
+          unless spec[:name] and spec[:name] == method_name
             raise PureError::ParseError,
             "failure parsing #{mod.name}##{method_name} at #{file}:#{line}" 
           end
-          args
+          spec
         end
 
         def file_line(backtrace)

@@ -20,10 +20,10 @@ module Pure
             CompTree.build do |driver|
               mod.ancestors.each { |ancestor|
                 if defs = method_database[ancestor]
-                  defs.each_pair { |method_name, args|
+                  defs.each_pair { |method_name, spec|
                     existing_node = driver.nodes[method_name]
                     if existing_node.nil? or existing_node.function.nil?
-                      driver.define(method_name, *args) { |*objs|
+                      driver.define(method_name, *spec[:args]) { |*objs|
                         instance.send(method_name, *objs)
                       }
                     end
@@ -66,7 +66,11 @@ module Pure
             fun_mod.module_eval {
               define_method(node_sym, &fun_block)
             }
-            method_database[fun_mod][node_sym] = child_syms
+            method_database[fun_mod][node_sym] = {
+              :name => node_sym,
+              :args => child_syms,
+              :sexp => :missing,
+            }
             nil
           end
         end

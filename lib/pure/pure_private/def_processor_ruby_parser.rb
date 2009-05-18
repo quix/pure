@@ -16,9 +16,13 @@ module Pure
       end
         
       def process_defn(sexp)
-        method_name = sexp[1]
+        name = sexp[1]
         args = sexp[2].to_a[1..-1]
-        @defs[sexp.line] = [method_name, *args]
+        @defs[sexp.line] = {
+          :name => name,
+          :args => args,
+          :sexp => sexp.dup,
+        }
         sexp.clear
       end
     end
