@@ -1,8 +1,10 @@
 
 module Pure
-  class Error < StandardError
-  end
-
-  class ParseError < Error
+  module PureError
+    class BaseError < StandardError
+    end
+    
+    class ParseError < BaseError
+    end
   end
 end

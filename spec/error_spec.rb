@@ -7,7 +7,7 @@ describe "error checking:" do
         pure do
           def x ; end ; def y ; end
         end
-      }.should raise_error(Pure::ParseError)
+      }.should raise_error(Pure::PureError::ParseError)
     end
   end
 
