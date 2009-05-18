@@ -10,11 +10,8 @@ require "pure/def_processor_#{suffix}"
 module Pure
   module DefParser
     @def_cache = Hash.new
-    @defs = Hash.new { |hash, key| hash[key] = Hash.new }
   
     class << self
-      attr_reader :defs
-  
       def parse(mod, method_name, file, line)
         def_cache_file = @def_cache[file] || (
           @def_cache[file] = DefProcessor.new.run(File.read(file))
@@ -24,7 +21,7 @@ module Pure
           raise ParseError,
           "failure parsing #{mod.name}##{method_name} at #{file}:#{line}" 
         end
-        @defs[mod][method_name] = args
+        args
       end
   
       def file_line(backtrace)

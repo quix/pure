@@ -6,25 +6,23 @@ require 'comp_tree'
 module Pure
   VERSION = "0.1.0"
 
+  METHOD_DATABASE = Hash.new { |hash, key|
+    hash[key] = Hash.new
+  }
+
   module_function
 
   def pure(&block)
     mod = Module.new
-    fun_cache = Hash.new
+    fun_mod = Module.new
 
     Util.singleton_class_of(mod).module_eval do
       define_method :compute do |root, opts|
         num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
         instance = Class.new { include mod }.new
         CompTree.build do |driver|
-          # 'fun' definitions
-          fun_cache.each_pair { |node_name, (child_names, fun_block)|
-            driver.define(node_name, *child_names, &fun_block)
-          }
-
-          # 'def' definitions
           mod.ancestors.each { |ancestor|
-            if defs = DefParser.defs[ancestor]
+            if defs = METHOD_DATABASE[ancestor]
               defs.each_pair { |method_name, args|
                 existing_node = driver.nodes[method_name]
                 if existing_node.nil? or existing_node.function.nil?
@@ -35,7 +33,6 @@ module Pure
               }
             end
           }
-
           driver.compute(root, num_threads)
         end
       end
@@ -64,16 +61,26 @@ module Pure
             child_names.to_sym
           end
         )
-        fun_cache[node_name.to_sym] = [child_syms, fun_block]
+        node_sym = node_name.to_sym
+        fun_mod.module_eval {
+          define_method(node_sym, &fun_block)
+        }
+        METHOD_DATABASE[fun_mod][node_sym] = child_syms
+        nil
       end
 
       define_method :method_added do |method_name|
         file, line = DefParser.file_line(caller)
-        args = DefParser.parse(mod, method_name, file, line)
+        METHOD_DATABASE[mod][method_name] = (
+          DefParser.parse(mod, method_name, file, line)
+        )
       end
     end
 
     mod.module_eval(&block)
+    mod.module_eval {
+      include fun_mod
+    }
     mod
   end
 end
