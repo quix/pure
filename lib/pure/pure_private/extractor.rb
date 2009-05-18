@@ -1,5 +1,5 @@
 
-require 'pure/error'
+require 'pure/pure_private/error'
 require 'pure/pure_private/util'
 
 # some silliness to fool rcov
@@ -20,7 +20,7 @@ module Pure
           )
           spec = defs[line]
           unless spec[:name] and spec[:name] == method_name
-            raise PureError::ParseError,
+            raise PurePrivate::Error::ParseError,
             "failure parsing #{mod.name}##{method_name} at #{file}:#{line}" 
           end
           spec
