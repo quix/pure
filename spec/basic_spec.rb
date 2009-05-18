@@ -22,11 +22,13 @@ describe "basic computation" do
   end
   
   max_threads = 50
+
   it "should run using compute(:x, :threads => n) syntax" do
     (1..max_threads).each { |n|
       @mod.compute(:area, :threads => n).should == (20 + 5)*(30 + 5)  
     }
   end
+
   it "should run using compute(:x, n) syntax" do
     (1..max_threads).each { |n|
       @mod.compute(:area, n).should == (20 + 5)*(30 + 5)  
