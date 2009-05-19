@@ -1,5 +1,5 @@
 
-require 'pure/pure_private/creator.rb'
+require 'pure/pure_private/creator'
 
 module Pure
   PURE_VERSION = "0.1.0"
