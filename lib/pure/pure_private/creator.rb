@@ -6,12 +6,14 @@ require 'comp_tree'
 module Pure
   module PurePrivate
     module Creator
-      METHOD_DATABASE = Hash.new { |hash, key|
+      @method_database = Hash.new { |hash, key|
         hash[key] = Hash.new
       }
       
       class << self
         include Util
+        
+        attr_reader :method_database
 
         def define_compute(mod, method_database)
           singleton_class_of(mod).module_eval do
@@ -91,9 +93,9 @@ module Pure
         def create(&block)
           mod = Module.new
           fun_mod = Module.new
-          define_compute(mod, METHOD_DATABASE)
-          define_fun(mod, fun_mod, METHOD_DATABASE)
-          define_method_added(mod, METHOD_DATABASE)
+          define_compute(mod, @method_database)
+          define_fun(mod, fun_mod, @method_database)
+          define_method_added(mod, @method_database)
           mod.module_eval(&block)
           mod.module_eval { include fun_mod }
           mod
