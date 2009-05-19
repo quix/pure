@@ -6,24 +6,24 @@ require 'comp_tree'
 module Pure
   module PurePrivate
     module Creator
-      @method_database = Hash.new { |hash, key|
+      @function_database = Hash.new { |hash, key|
         hash[key] = Hash.new
       }
       
       class << self
         include Util
         
-        attr_reader :method_database
+        attr_reader :function_database
 
-        def build_and_compute(mod, method_database, root, num_threads, &block)
+        def build_and_compute(mod, function_database, root, num_threads, &block)
           CompTree.build do |driver|
             mod.ancestors.each { |ancestor|
-              if defs = method_database[ancestor]
-                defs.each_pair { |method_name, spec|
-                  existing_node = driver.nodes[method_name]
+              if defs = function_database[ancestor]
+                defs.each_pair { |function_name, spec|
+                  existing_node = driver.nodes[function_name]
                   if existing_node.nil? or existing_node.function.nil?
-                    node = driver.define(method_name, *spec[:args])
-                    node.function = yield method_name, spec
+                    node = driver.define(function_name, *spec[:args])
+                    node.function = yield function_name, spec
                   end
                 }
               end
@@ -35,15 +35,15 @@ module Pure
         def instance_compute(mod, root, opts)
           num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
           instance = Object.new.extend(mod)
-          Creator.build_and_compute(mod, method_database, root, num_threads) {
-            |method_name, spec|
+          Creator.build_and_compute(mod, function_database, root, num_threads) {
+            |function_name, spec|
             lambda { |*args|
-              instance.send(method_name, *args)
+              instance.send(function_name, *args)
             }
           }
         end
 
-        def define_compute(mod, method_database)
+        def define_compute(mod, function_database)
           singleton_class_of(mod).module_eval do
             define_method :compute do |root, opts|
               Creator.instance_compute(mod, root, opts)
@@ -51,7 +51,7 @@ module Pure
           end
         end
 
-        def define_fun(mod, fun_mod, method_database)
+        def define_fun(mod, fun_mod, function_database)
           singleton_class_of(mod).module_eval do
             define_method :fun do |*args, &block|
               node_name, child_names = (
@@ -82,7 +82,7 @@ module Pure
                 define_method(node_sym, &block)
               }
               spec = Extractor.extract(:__fun, caller)
-              method_database[fun_mod][node_sym] = {
+              function_database[fun_mod][node_sym] = {
                 :name => node_sym,
                 :args => child_syms,
                 :sexp => spec[:sexp],
@@ -92,11 +92,11 @@ module Pure
           end
         end
 
-        def define_method_added(mod, method_database)
+        def define_method_added(mod, function_database)
           singleton_class_of(mod).module_eval do
-            define_method :method_added do |method_name|
-              method_database[mod][method_name] = (
-                Extractor.extract(method_name, caller)
+            define_method :method_added do |function_name|
+              function_database[mod][function_name] = (
+                Extractor.extract(function_name, caller)
               )
             end
           end
@@ -105,9 +105,9 @@ module Pure
         def create(&block)
           mod = Module.new
           fun_mod = Module.new
-          define_compute(mod, @method_database)
-          define_fun(mod, fun_mod, @method_database)
-          define_method_added(mod, @method_database)
+          define_compute(mod, @function_database)
+          define_fun(mod, fun_mod, @function_database)
+          define_method_added(mod, @function_database)
           mod.module_eval(&block)
           mod.module_eval { include fun_mod }
           mod
