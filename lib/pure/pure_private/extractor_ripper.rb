@@ -1,9 +1,9 @@
 
 require 'ripper'
-  
+
 module Pure
   module PurePrivate
-    class ExtractorProcessor
+    class ExtractorRipper
       def initialize
         @defs = Hash.new
       end

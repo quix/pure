@@ -14,6 +14,10 @@ module Pure
           self
         end
       end
+
+      def to_camel_case(str)
+        str.split('_').map { |t| t.capitalize }.join
+      end
     end
   end
 end
