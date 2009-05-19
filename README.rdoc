@@ -41,8 +41,8 @@ Language-level support for automatic parallelism and lazy evaluation.
 +Pure+ is an importation of the pure functional paradigm into Ruby.
 
 Method names and argument names have lexicographical meaning within a
-+pure+ block.  Above, the +width+ argument to +area+ corresponds, by
-its literal name, to the +width+ method, for example.
++pure+ block.  Above, the +width+ argument to +area+ corresponds by
+its literal name to the +width+ method, for example.
 
 +pure+ returns a module which may be included into other +pure+ blocks.
 
