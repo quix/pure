@@ -15,10 +15,10 @@ module Pure
         
         attr_reader :function_database
 
-        def build_and_compute(mod, function_database, root, num_threads, &block)
+        def build_and_compute(mod, root, num_threads, &block)
           CompTree.build do |driver|
             mod.ancestors.each { |ancestor|
-              if defs = function_database[ancestor]
+              if defs = @function_database[ancestor]
                 defs.each_pair { |function_name, spec|
                   existing_node = driver.nodes[function_name]
                   if existing_node.nil? or existing_node.function.nil?
@@ -35,7 +35,7 @@ module Pure
         def instance_compute(mod, root, opts)
           num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
           instance = Object.new.extend(mod)
-          Driver.build_and_compute(mod, function_database, root, num_threads) {
+          Driver.build_and_compute(mod, root, num_threads) {
             |function_name, spec|
             lambda { |*args|
               instance.send(function_name, *args)
@@ -43,7 +43,7 @@ module Pure
           }
         end
 
-        def define_compute(mod, function_database)
+        def define_compute(mod)
           singleton_class_of(mod).module_eval do
             define_method :compute do |root, opts|
               Driver.instance_compute(mod, root, opts)
@@ -51,7 +51,9 @@ module Pure
           end
         end
 
-        def define_fun(mod, fun_mod, function_database)
+        def define_fun(mod, fun_mod)
+          function_database = @function_database
+
           singleton_class_of(mod).module_eval do
             define_method :fun do |*args, &block|
               node_name, child_names = (
@@ -92,7 +94,8 @@ module Pure
           end
         end
 
-        def define_method_added(mod, function_database)
+        def define_method_added(mod)
+          function_database = @function_database
           singleton_class_of(mod).module_eval do
             define_method :method_added do |function_name|
               function_database[mod][function_name] = (
@@ -105,9 +108,9 @@ module Pure
         def define_module(&block)
           mod = Module.new
           fun_mod = Module.new
-          define_compute(mod, @function_database)
-          define_fun(mod, fun_mod, @function_database)
-          define_method_added(mod, @function_database)
+          define_compute(mod)
+          define_fun(mod, fun_mod)
+          define_method_added(mod)
           mod.module_eval(&block)
           mod.module_eval { include fun_mod }
           mod
