@@ -5,7 +5,7 @@ require 'comp_tree'
 
 module Pure
   module PurePrivate
-    module Creator
+    module Driver
       @function_database = Hash.new { |hash, key|
         hash[key] = Hash.new
       }
@@ -35,7 +35,7 @@ module Pure
         def instance_compute(mod, root, opts)
           num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
           instance = Object.new.extend(mod)
-          Creator.build_and_compute(mod, function_database, root, num_threads) {
+          Driver.build_and_compute(mod, function_database, root, num_threads) {
             |function_name, spec|
             lambda { |*args|
               instance.send(function_name, *args)
@@ -46,7 +46,7 @@ module Pure
         def define_compute(mod, function_database)
           singleton_class_of(mod).module_eval do
             define_method :compute do |root, opts|
-              Creator.instance_compute(mod, root, opts)
+              Driver.instance_compute(mod, root, opts)
             end
           end
         end
@@ -102,7 +102,7 @@ module Pure
           end
         end
 
-        def create(&block)
+        def define_module(&block)
           mod = Module.new
           fun_mod = Module.new
           define_compute(mod, @function_database)
