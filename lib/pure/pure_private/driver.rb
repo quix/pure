@@ -22,8 +22,9 @@ module Pure
                 defs.each_pair { |function_name, spec|
                   existing_node = driver.nodes[function_name]
                   if existing_node.nil? or existing_node.function.nil?
+                    final_spec = spec.merge(:module => ancestor)
                     node = driver.define(function_name, *spec[:args])
-                    node.function = yield function_name, spec
+                    node.function = yield function_name, final_spec
                   end
                 }
               end
