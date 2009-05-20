@@ -7,7 +7,6 @@ require 'comp_tree'
 module Pure
   module PurePrivate
     module Driver
-      
       class << self
         include Util
 
@@ -40,8 +39,7 @@ module Pure
         def instance_compute(mod, root, opts)
           num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
           instance = Object.new.extend(mod)
-          Driver.build_and_compute(mod, root, num_threads) {
-            |function_name, spec|
+          build_and_compute(mod, root, num_threads) { |function_name, spec|
             lambda { |*args|
               instance.send(function_name, *args)
             }
