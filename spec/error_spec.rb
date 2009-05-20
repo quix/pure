@@ -78,3 +78,23 @@ describe "`fun'" do
     end
   end
 end
+
+describe "calling define_method" do
+  it "should raise error" do
+    lambda {
+      pure do
+        define_method :area do |width, height|
+          width*height
+        end
+        
+        def width
+          5
+        end
+        
+        def height
+          7
+        end
+      end.compute :area, 3
+    }.should raise_error(Pure::PurePrivate::NotImplementedError)
+  end
+end

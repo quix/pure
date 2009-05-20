@@ -113,12 +113,22 @@ module Pure
           end
         end
 
+        def define_define_method(mod)
+          singleton_class_of(mod).module_eval do
+            def define_method(*args, &block)
+              raise PurePrivate::NotImplementedError,
+              "define_method called (use the `fun' method instead)"
+            end
+          end
+        end
+
         def define_module(&block)
           mod = Module.new
           fun_mod = Module.new
           define_compute(mod)
           define_fun(mod, fun_mod)
           define_method_added(mod)
+          define_define_method(mod)
           mod.module_eval(&block)
           mod.module_eval { include fun_mod }
           mod
