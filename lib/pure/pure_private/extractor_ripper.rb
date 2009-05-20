@@ -64,7 +64,7 @@ module Pure
           )
           if line
             @defs[line] = {
-              :name => :__fun,
+              :name => :fun,
               :sexp => sexp[2],
             }
             true

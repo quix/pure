@@ -91,7 +91,7 @@ module Pure
               fun_mod.module_eval {
                 define_method(node_sym, &block)
               }
-              spec = Extractor.extract(:__fun, caller)
+              spec = Extractor.extract(:fun, caller)
               function_database[fun_mod][node_sym] = {
                 :name => node_sym,
                 :args => child_syms,

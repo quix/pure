@@ -22,9 +22,9 @@ module Pure
             @cache[file] = @engine.new.run(File.read(file))
           )
           spec = defs[line]
-          unless spec[:name] and spec[:name] == method_name
+          unless spec and spec[:name] and spec[:name] == method_name
             raise PurePrivate::ParseError,
-            "failure parsing #{method_name} at #{file}:#{line}" 
+            "failure parsing `#{method_name}' at #{file}:#{line}" 
           end
           spec
         end

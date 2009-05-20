@@ -77,6 +77,23 @@ describe "`fun'" do
       }.should raise_error(Pure::PurePrivate::ArgumentError)
     end
   end
+
+  describe "with &block" do
+    it "should raise error" do
+      lambda {
+        pure do
+          fun :f, &lambda { 33 }
+        end.compute(:f, :threads => 4).should == 33
+      }.should raise_error(Pure::PurePrivate::ParseError)
+
+      lambda {
+        pure do
+          t = lambda { 33 }
+          fun :f, &t
+        end.compute(:f, :threads => 4).should == 33
+      }.should raise_error(Pure::PurePrivate::ParseError)
+    end
+  end
 end
 
 describe "calling define_method" do
