@@ -1,12 +1,19 @@
 
 module Pure
   module PurePrivate
-    module Error
-      class BaseError < StandardError
-      end
-      
-      class ParseError < BaseError
-      end
+    class Error < StandardError
+    end
+    
+    class NoFunctionError < Error
+    end
+
+    class ParseError < Error
+    end
+
+    class ArgumentError < Error
+    end
+
+    class NotImplementedError < Error
     end
   end
 end

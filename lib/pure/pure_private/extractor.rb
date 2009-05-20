@@ -23,7 +23,7 @@ module Pure
           )
           spec = defs[line]
           unless spec[:name] and spec[:name] == method_name
-            raise PurePrivate::Error::ParseError,
+            raise PurePrivate::ParseError,
             "failure parsing #{method_name} at #{file}:#{line}" 
           end
           spec
@@ -36,7 +36,8 @@ module Pure
             require "pure/pure_private/#{engine_name}"
             @engine = PurePrivate.const_get(to_camel_case(engine_name))
           rescue LoadError
-            raise "Parser not supported: #{parser_name}"
+            raise PurePrivate::NotImplementedError,
+            "parser not supported: #{parser_name}"
           end
           @parser = parser_name
         end

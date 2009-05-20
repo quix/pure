@@ -24,7 +24,7 @@ module Pure
             when :paren
               sexp[2][1]
             else
-              raise "unforeseen def syntax"
+              raise PurePrivate::ParseError, "unforeseen `def' syntax"
             end
           )
           args = (

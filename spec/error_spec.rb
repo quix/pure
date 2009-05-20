@@ -1,37 +1,80 @@
 require File.dirname(__FILE__) + "/common"
 
-describe "error checking:" do
-  describe "two defs on the same line" do
+describe "two defs on the same line:" do
+  it "should raise error" do
+    lambda {
+      pure do
+        def x ; end ; def y ; end
+      end
+    }.should raise_error(Pure::PurePrivate::ParseError)
+  end
+end
+
+describe "function missing:" do
+  it "should raise error" do
+    lambda {
+      pure do
+        def area(width, height)
+          width*height
+        end
+        
+        def width
+          33
+        end
+      end.compute :area, :threads => 3
+    }.should raise_error(Pure::PurePrivate::NoFunctionError)
+  end
+end
+
+describe "bad arguments:" do
+  it "should raise error when given nil" do
+    lambda {
+      pure do
+        def f
+        end
+      end.compute nil, 33
+    }.should raise_error(Pure::PurePrivate::ArgumentError)
+  end
+
+  it "should raise error when given something random" do
+    lambda {
+      pure do
+        def f
+        end
+      end.compute 33, 33
+    }.should raise_error(Pure::PurePrivate::ArgumentError)
+  end
+
+  it "should raise error when given a string" do
+    lambda {
+      pure do
+        def f
+        end
+      end.compute "f", 33
+    }.should raise_error(Pure::PurePrivate::ArgumentError)
+  end
+end
+
+describe "`fun'" do
+  describe "given hash of size != 1" do
     it "should raise error" do
       lambda {
         pure do
-          def x ; end ; def y ; end
+          fun :x => 1, :y => 2 do
+          end
         end
-      }.should raise_error(Pure::PurePrivate::Error::ParseError)
+      }.should raise_error(Pure::PurePrivate::ArgumentError)
     end
   end
 
-  describe "`fun'" do
-    describe "given hash of size != 1" do
-      it "should raise error" do
-        lambda {
-          pure do
-            fun :x => 1, :y => 2 do
-            end
+  describe "given more than 1 argument" do
+    it "should raise error" do
+      lambda {
+        pure do
+          fun :x, :y do
           end
-        }.should raise_error(ArgumentError)
-      end
-    end
-
-    describe "given more than 1 argument" do
-      it "should raise error" do
-        lambda {
-          pure do
-            fun :x, :y do
-            end
-          end
-        }.should raise_error(ArgumentError)
-      end
+        end
+      }.should raise_error(Pure::PurePrivate::ArgumentError)
     end
   end
 end

@@ -10,7 +10,6 @@ describe "parser choice" do
   end
 
   it "should be queryable" do
-    # force default if not yet chosen
     pure do
       def f
       end
@@ -26,5 +25,14 @@ describe "parser choice" do
     ensure
       Pure.parser = previous
     end
+  end
+
+  it "should have a default" do
+    Pure.instance_eval { @parser = nil }
+    pure do
+      def f
+      end
+    end
+    Pure.parser.should_not == nil
   end
 end

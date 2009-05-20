@@ -16,20 +16,26 @@ module Pure
         attr_reader :function_database
 
         def build_and_compute(mod, root, num_threads, &block)
-          CompTree.build do |driver|
-            mod.ancestors.each { |ancestor|
-              if defs = @function_database[ancestor]
-                defs.each_pair { |function_name, spec|
-                  existing_node = driver.nodes[function_name]
-                  if existing_node.nil? or existing_node.function.nil?
-                    final_spec = spec.merge(:module => ancestor)
-                    node = driver.define(function_name, *spec[:args])
-                    node.function = yield function_name, final_spec
-                  end
-                }
-              end
-            }
-            driver.compute(root, num_threads)
+          begin
+            CompTree.build do |driver|
+              mod.ancestors.each { |ancestor|
+                if defs = @function_database[ancestor]
+                  defs.each_pair { |function_name, spec|
+                    existing_node = driver.nodes[function_name]
+                    if existing_node.nil? or existing_node.function.nil?
+                      final_spec = spec.merge(:module => ancestor)
+                      node = driver.define(function_name, *spec[:args])
+                      node.function = yield function_name, final_spec
+                    end
+                  }
+                end
+              }
+              driver.compute(root, num_threads)
+            end
+          rescue CompTree::NoFunctionError => exception
+            raise PurePrivate::NoFunctionError, exception.message
+          rescue CompTree::ArgumentError => exception
+            raise PurePrivate::ArgumentError, exception.message
           end
         end
 
@@ -62,14 +68,15 @@ module Pure
                   arg = args.first
                   if arg.is_a? Hash
                     unless arg.size == 1
-                      raise ArgumentError, "`fun' given hash of size != 1"
+                      raise PurePrivate::ArgumentError,
+                      "`fun' given hash of size != 1"
                     end
                     arg.to_a.first
                   else
                     [arg, []]
                   end
                 else
-                  raise ArgumentError,
+                  raise PurePrivate::ArgumentError,
                   "wrong number of arguments (\#{args.size} for 1)"
                 end
               )
