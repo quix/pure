@@ -56,7 +56,10 @@ module Pure
 
         def define_fun(mod, fun_mod)
           singleton_class_of(mod).module_eval do
-            define_method :fun do |*args, &block|
+            # TODO: jettison 1.8.6; remove @fun_mod, use |&block|
+            @fun_mod = fun_mod
+            def fun(*args, &block)
+              fun_mod = class << self ; @fun_mod ; end
               node_name, child_names = (
                 if args.size == 1
                   arg = args.first

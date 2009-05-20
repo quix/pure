@@ -29,7 +29,7 @@ Language-level support for automatic parallelism and lazy evaluation.
   end
   
   # compute the area using 3 parallel threads
-  puts geometry.compute :area, :threads => 3
+  puts geometry.compute(:area, :threads => 3)
   # => 63
 
   # We've done this computation.
