@@ -26,7 +26,7 @@ module Pure
             raise PurePrivate::ParseError,
             "failure parsing `#{method_name}' at #{file}:#{line}" 
           end
-          spec
+          spec.merge(:file => file, :line => line)
         end
 
         def parser=(parser_name)

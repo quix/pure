@@ -1,25 +1,23 @@
 
 require 'pure/pure_private/extractor'
 require 'pure/pure_private/util'
+require 'pure/pure_private/function_database'
 require 'comp_tree'
 
 module Pure
   module PurePrivate
     module Driver
-      @function_database = Hash.new { |hash, key|
-        hash[key] = Hash.new
-      }
       
       class << self
         include Util
-        
-        attr_reader :function_database
+
+        FUNCTION_DATABASE = FunctionDatabase::FUNCTION_DATABASE
 
         def build_and_compute(mod, root, num_threads, &block)
           begin
             CompTree.build do |driver|
               mod.ancestors.each { |ancestor|
-                if defs = @function_database[ancestor]
+                if defs = FUNCTION_DATABASE[ancestor]
                   defs.each_pair { |function_name, spec|
                     existing_node = driver.nodes[function_name]
                     if existing_node.nil? or existing_node.function.nil?
@@ -59,8 +57,6 @@ module Pure
         end
 
         def define_fun(mod, fun_mod)
-          function_database = @function_database
-
           singleton_class_of(mod).module_eval do
             define_method :fun do |*args, &block|
               node_name, child_names = (
@@ -92,22 +88,21 @@ module Pure
                 define_method(node_sym, &block)
               }
               spec = Extractor.extract(:fun, caller)
-              function_database[fun_mod][node_sym] = {
+              FUNCTION_DATABASE[fun_mod][node_sym] = spec.merge(
                 :name => node_sym,
                 :args => child_syms,
-                :sexp => spec[:sexp],
-              }
+                :origin => :fun
+              )
               nil
             end
           end
         end
 
         def define_method_added(mod)
-          function_database = @function_database
           singleton_class_of(mod).module_eval do
             define_method :method_added do |function_name|
-              function_database[mod][function_name] = (
-                Extractor.extract(function_name, caller)
+              FUNCTION_DATABASE[mod][function_name] = (
+                Extractor.extract(function_name, caller).merge(:origin => :def)
               )
             end
           end
