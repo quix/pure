@@ -1,5 +1,6 @@
 
 require 'pure/pure_private/function_database'
+require 'pure/pure_private/error'
 require 'comp_tree'
 
 module Pure
@@ -33,12 +34,12 @@ module Pure
         end
       end
 
-      def instance_compute(mod, root, opts)
+      def create_instance_and_compute(mod, root, opts)
         num_threads = (opts.is_a?(Hash) ? opts[:threads] : opts).to_i
         instance = Object.new.extend(mod)
         build_and_compute(mod, root, num_threads) { |function_name, spec|
           lambda { |*args|
-              instance.send(function_name, *args)
+            instance.send(function_name, *args)
           }
         }
       end

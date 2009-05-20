@@ -8,7 +8,7 @@ module Pure
   module_function
 
   def pure(&block)
-    PurePrivate::Creator.define_module(&block)
+    PurePrivate::Creator.create_module(&block)
   end
 
   class << self
