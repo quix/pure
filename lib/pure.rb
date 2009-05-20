@@ -1,5 +1,5 @@
 
-require 'pure/pure_private/driver'
+require 'pure/pure_private/creator'
 require 'pure/pure_private/extractor'
 
 module Pure
@@ -8,7 +8,7 @@ module Pure
   module_function
 
   def pure(&block)
-    PurePrivate::Driver.define_module(&block)
+    PurePrivate::Creator.define_module(&block)
   end
 
   class << self
