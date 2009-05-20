@@ -115,3 +115,17 @@ describe "calling define_method" do
     }.should raise_error(Pure::PurePrivate::NotImplementedError)
   end
 end
+
+describe "parse engine" do
+  it "should raise error when not installed" do
+    lambda {
+      Pure.parser = "z"*99
+    }.should raise_error(LoadError)
+  end
+
+  it "should raise error when unsupported" do
+    lambda {
+      Pure.parser = "fileutils"
+    }.should raise_error(Pure::PurePrivate::NotImplementedError)
+  end
+end

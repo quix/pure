@@ -1,14 +1,6 @@
 require File.dirname(__FILE__) + "/common"
 
-describe "parser choice" do
-  it "should raise error when not installed" do
-    lambda { Pure.parser = "z"*99 }.should raise_error(LoadError)
-  end
-
-  it "should raise error when unsupported" do
-    lambda { Pure.parser = "fileutils" }.should raise_error
-  end
-
+describe "parse engine" do
   it "should be queryable" do
     pure do
       def f
