@@ -21,7 +21,8 @@ module Pure
       end
 
       def message
-        "cannot use splat (*) argument in a pure function at #{@file}:#{@line}"
+        "cannot use splat (*) argument in a pure function defined with `def' " +
+        "at #{@file}:#{@line}"
       end
     end
 
