@@ -25,6 +25,7 @@ module Pure
         include Util
 
         def extract(mod, method_name, backtrace)
+          file, line = file_line(backtrace.first)
           if @parser.nil? and HAS_METHOD_PARAMETERS
             if method_name == :fun
               Hash.new
@@ -33,6 +34,7 @@ module Pure
                 :name => method_name,
                 :args => mod.instance_method(method_name).parameters.map {
                   |type, name|
+                  raise SplatError, line if type == :rest
                   name
                 },
               }
@@ -41,7 +43,6 @@ module Pure
             if @parser.nil?
               self.parser = DEFAULT_PARSER
             end
-            file, line = file_line(backtrace.first)
             defs = @cache[@parser][file] || (
               @cache[@parser][file] = @engine.new.run(File.read(file))
             )

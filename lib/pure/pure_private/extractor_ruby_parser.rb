@@ -19,6 +19,9 @@ module Pure
         if sexp[0] == :defn
           name = sexp[1]
           args = sexp[2].to_a[1..-1]
+          if args.any? { |arg| arg.to_s =~ %r!\A\*! }
+            raise SplatError, sexp.line
+          end
           @defs[sexp.line] = {
             :name => name,
             :args => args,

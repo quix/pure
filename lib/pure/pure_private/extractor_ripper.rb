@@ -27,6 +27,9 @@ module Pure
               raise PurePrivate::ParseError, "unforeseen `def' syntax"
             end
           )
+          if params.any? { |t| t and t[0] == :rest_param }
+            raise SplatError, line
+          end
           args = (
             if params[1].nil?
               []
