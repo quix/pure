@@ -14,13 +14,14 @@ module Pure
     end
 
     class SplatError < ParseError
-      def initialize(line)
+      def initialize(file, line)
         super()
+        @file = file
         @line = line
       end
 
       def message
-        "cannot use splat (*) argument in a pure function at line #{@line}"
+        "cannot use splat (*) argument in a pure function at #{@file}:#{@line}"
       end
     end
 

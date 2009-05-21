@@ -4,12 +4,13 @@ require 'ripper'
 module Pure
   module PurePrivate
     class ExtractorRipper
-      def initialize
+      def initialize(file)
+        @file = file
         @defs = Hash.new
       end
 
-      def run(code)
-        process(Ripper.sexp(code))
+      def run
+        process(Ripper.sexp(File.read(@file)))
         @defs
       end
 
@@ -24,11 +25,12 @@ module Pure
             when :paren
               sexp[2][1]
             else
-              raise PurePrivate::ParseError, "unforeseen `def' syntax"
+              raise PurePrivate::ParseError,
+              "unforeseen `def' syntax at #{@file}:#{line}"
             end
           )
           if params.any? { |t| t and t[0] == :rest_param }
-            raise SplatError, line
+            raise SplatError.new(@file, line)
           end
           args = (
             if params[1].nil?

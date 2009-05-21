@@ -5,13 +5,14 @@ require 'sexp_processor'
 module Pure
   module PurePrivate
     class ExtractorRubyParser < SexpProcessor
-      def initialize
+      def initialize(file)
         super()
+        @file = file
         @defs = Hash.new
       end
         
-      def run(code)
-        process(RubyParser.new.parse(code))
+      def run
+        process(RubyParser.new.parse(File.read(@file)))
         @defs
       end
         
@@ -20,7 +21,7 @@ module Pure
           name = sexp[1]
           args = sexp[2].to_a[1..-1]
           if args.any? { |arg| arg.to_s =~ %r!\A\*! }
-            raise SplatError, sexp.line
+            raise SplatError.new(@file, sexp.line)
           end
           @defs[sexp.line] = {
             :name => name,

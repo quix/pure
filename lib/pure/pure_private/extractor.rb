@@ -34,7 +34,7 @@ module Pure
                 :name => method_name,
                 :args => mod.instance_method(method_name).parameters.map {
                   |type, name|
-                  raise SplatError, line if type == :rest
+                  raise SplatError.new(file, line) if type == :rest
                   name
                 },
               }
@@ -44,7 +44,7 @@ module Pure
               self.parser = DEFAULT_PARSER
             end
             defs = @cache[@parser][file] || (
-              @cache[@parser][file] = @engine.new.run(File.read(file))
+              @cache[@parser][file] = @engine.new(file).run
             )
             spec = defs[line]
             unless spec and spec[:name] and spec[:name] == method_name
