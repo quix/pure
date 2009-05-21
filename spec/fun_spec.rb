@@ -94,4 +94,29 @@ describe "`fun' definitions" do
       end
     end.compute(:f, 10).should == 33
   end
+
+  it "should support splat in block args" do
+    pure do
+      fun :area => [:width, :height] do |*a|
+        a[0]*a[1]
+      end
+      
+      def width
+        3
+      end
+      
+      def height
+        4
+      end
+    end.compute(:area, 3).should == 12
+  end
+
+  it "should support splat with single-element array" do
+    pure do
+      name = [:f]
+      fun(*name) do
+        name
+      end
+    end.compute(:f, 3).should == [:f]
+  end
 end
