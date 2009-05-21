@@ -9,7 +9,7 @@ describe "splat (*) argument in pure function" do
             stuff
           end
         end
-      }.should raise_error(Pure::PurePrivate::SplatError)
+      }.should raise_error(Pure::PurePrivate::SplatError, %r!cannot use splat!)
     end
   end
 end
