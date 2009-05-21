@@ -43,7 +43,7 @@ module Pure
         fun_mod.module_eval {
           define_method(node_sym, &block)
         }
-        spec = Extractor.extract(:fun, caller)
+        spec = Extractor.extract(fun_mod, :fun, caller)
         FUNCTION_DATABASE[fun_mod][node_sym] = spec.merge(
           :name => node_sym,
           :args => child_syms,
@@ -54,7 +54,7 @@ module Pure
 
       def method_added(function_name)
         FUNCTION_DATABASE[self][function_name] = (
-          Extractor.extract(function_name, caller).merge(:origin => :def)
+          Extractor.extract(self, function_name, caller).merge(:origin => :def)
         )
       end
 

@@ -1,12 +1,17 @@
 require File.dirname(__FILE__) + "/common"
 
 describe "two defs on the same line:" do
-  it "should raise error" do
-    lambda {
+  it "should raise error unless Method#parameters is used" do
+    code = lambda {
       pure do
         def x ; end ; def y ; end
       end
-    }.should raise_error(Pure::PurePrivate::ParseError)
+    }
+    if Pure.parser.nil?
+      code.should_not raise_error
+    else
+      code.should raise_error(Pure::PurePrivate::ParseError)
+    end
   end
 end
 
@@ -79,19 +84,29 @@ describe "`fun'" do
   end
 
   describe "with &block" do
-    it "should raise error" do
-      lambda {
+    it "should raise error unless Method#parameters is used" do
+      code = lambda {
         pure do
           fun :f, &lambda { 33 }
         end.compute(:f, :threads => 4).should == 33
-      }.should raise_error(Pure::PurePrivate::ParseError)
+      }
+      if Pure.parser.nil?
+        code.should_not raise_error
+      else
+        code.should raise_error(Pure::PurePrivate::ParseError)
+      end
 
-      lambda {
+      code = lambda {
         pure do
           t = lambda { 33 }
           fun :f, &t
         end.compute(:f, :threads => 4).should == 33
-      }.should raise_error(Pure::PurePrivate::ParseError)
+      }
+      if Pure.parser.nil?
+        code.should_not raise_error
+      else
+        code.should raise_error(Pure::PurePrivate::ParseError)
+      end
     end
   end
 end

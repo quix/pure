@@ -6,7 +6,9 @@ describe "parse engine" do
       def f
       end
     end
-    Pure.parser.should_not == nil
+    lambda {
+      Pure.parser
+    }.should_not raise_error
   end
 
   it "should be swappable" do
@@ -19,12 +21,16 @@ describe "parse engine" do
     end
   end
 
-  it "should have a default" do
-    Pure.instance_eval { @parser = nil }
+  it "should have a default unless Method#parameters available" do
+    Pure.parser = nil
     pure do
       def f
       end
+    end.compute(:f, 3)
+    if Method.instance_methods.include?(:parameters)
+      Pure.parser.should == nil
+    else
+      Pure.parser.should_not == nil
     end
-    Pure.parser.should_not == nil
   end
 end

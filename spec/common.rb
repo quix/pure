@@ -14,6 +14,12 @@ AVAILABLE_PARSERS = ["ruby_parser"] + (
   rescue LoadError
     []
   end
+) + (
+  if Method.instance_methods.include? :parameters
+    [nil]
+  else
+    []
+  end
 )
 
 module Spec::Example::ExampleGroupMethods
@@ -21,7 +27,8 @@ module Spec::Example::ExampleGroupMethods
 
   def example(*args, &block)
     AVAILABLE_PARSERS.each { |parser|
-      describe "(#{parser})" do
+      parser_desc = parser || "no parser"
+      describe "(#{parser_desc})" do
         before :each do
           Pure.parser = parser
         end
