@@ -19,7 +19,7 @@ module Pure
 
       @parser = nil
       @engine = nil
-      @cache = Hash.new
+      @cache = Hash.new { |hash, key| hash[key] = Hash.new }
 
       class << self
         include Util
@@ -42,8 +42,8 @@ module Pure
               self.parser = DEFAULT_PARSER
             end
             file, line = file_line(backtrace.first)
-            defs = @cache[file] || (
-              @cache[file] = @engine.new.run(File.read(file))
+            defs = @cache[@parser][file] || (
+              @cache[@parser][file] = @engine.new.run(File.read(file))
             )
             spec = defs[line]
             unless spec and spec[:name] and spec[:name] == method_name
