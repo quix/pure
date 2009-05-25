@@ -30,7 +30,7 @@ module Pure
           else
             begin
               name = "extractor_#{engine}"
-              require "pure/pure_private/#{name}"
+              require "pure/pure_private/#{name}_check"
               @engine = PurePrivate.const_get(to_camel_case(name))
             rescue LoadError
               raise PurePrivate::NotImplementedError,
