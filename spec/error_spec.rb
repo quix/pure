@@ -7,7 +7,7 @@ describe "two defs on the same line:" do
         def x ; end ; def y ; end
       end
     }
-    if Pure.parser.nil?
+    if Pure.engine == :parameters
       code.should_not raise_error
     else
       code.should raise_error(Pure::PurePrivate::ParseError)
@@ -90,7 +90,7 @@ describe "`fun'" do
           fun :f, &lambda { 33 }
         end.compute(:f, :threads => 4).should == 33
       }
-      if Pure.parser.nil?
+      if Pure.engine == :parameters
         code.should_not raise_error
       else
         code.should raise_error(Pure::PurePrivate::ParseError)
@@ -102,7 +102,7 @@ describe "`fun'" do
           fun :f, &t
         end.compute(:f, :threads => 4).should == 33
       }
-      if Pure.parser.nil?
+      if Pure.engine == :parameters
         code.should_not raise_error
       else
         code.should raise_error(Pure::PurePrivate::ParseError)
@@ -134,13 +134,13 @@ end
 describe "parse engine" do
   it "should raise error when not installed" do
     lambda {
-      Pure.parser = "z"*99
-    }.should raise_error(LoadError)
+      Pure.engine = "z"*99
+    }.should raise_error(Pure::PurePrivate::NotImplementedError)
   end
 
   it "should raise error when unsupported" do
     lambda {
-      Pure.parser = "fileutils"
+      Pure.engine = "fileutils"
     }.should raise_error(Pure::PurePrivate::NotImplementedError)
   end
 end

@@ -5,74 +5,59 @@ require 'pure/pure_private/util'
 module Pure
   module PurePrivate
     module Extractor
-      HAS_METHOD_PARAMETERS = Method.instance_methods.include?(:parameters)
+      DEFAULT_ENGINE_SEQUENCE = [
+        :parameters,
+        :ripper,
+        :ruby_parser,
+      ]
 
-      DEFAULT_PARSER = (
-        if HAS_METHOD_PARAMETERS
-          nil
-        elsif RUBY_VERSION >= "1.9"
-          "ripper"
-        else
-          "ruby_parser"
-        end
-      )
-
-      @parser = nil
       @engine = nil
-      @cache = Hash.new { |hash, key| hash[key] = Hash.new }
 
       class << self
         include Util
 
         def extract(mod, method_name, backtrace)
-          file, line = file_line(backtrace.first)
-          if @parser.nil? and HAS_METHOD_PARAMETERS
-            if method_name == :fun
-              Hash.new
-            else
-              {
-                :name => method_name,
-                :args => mod.instance_method(method_name).parameters.map {
-                  |type, name|
-                  raise SplatError.new(file, line) if type == :rest
-                  name
-                },
-              }
-            end
-          else
-            if @parser.nil?
-              self.parser = DEFAULT_PARSER
-            end
-            defs = @cache[@parser][file] || (
-              @cache[@parser][file] = @engine.new(file).run
-            )
-            spec = defs[line]
-            unless spec and spec[:name] and spec[:name] == method_name
-              raise PurePrivate::ParseError,
-              "failure parsing `#{method_name}' at #{file}:#{line}" 
-            end
-            spec.merge(:file => file, :line => line)
+          unless @engine
+            @engine = default_engine
           end
+          file, line = file_line(backtrace.first)
+          @engine.extract(mod, method_name, file, line)
         end
 
-        def parser=(parser_name)
-          if parser_name.nil?
+        def engine=(engine)
+          if engine.nil?
             @engine = nil
           else
-            require parser_name
             begin
-              engine_name = "extractor_#{parser_name}"
-              require "pure/pure_private/#{engine_name}"
-              @engine = PurePrivate.const_get(to_camel_case(engine_name))
+              name = "extractor_#{engine}"
+              require "pure/pure_private/#{name}"
+              @engine = PurePrivate.const_get(to_camel_case(name))
             rescue LoadError
               raise PurePrivate::NotImplementedError,
-              "parser not supported: #{parser_name}"
+              "engine not available: #{engine}"
             end
           end
-          @parser = parser_name
+          engine
         end
 
-        attr_reader :parser
+        def engine
+          if @engine
+            @engine.
+            name[%r!\APure::PurePrivate::Extractor(\w+)\Z!, 1].
+            gsub(%r![A-Z]!) { |capital| "_" + capital.downcase }[1..-1].
+            to_sym
+          end
+        end
+
+        def default_engine
+          DEFAULT_ENGINE_SEQUENCE.each { |engine|
+            begin
+              self.engine = engine
+            rescue PurePrivate::NotImplementedError
+            end
+          }
+          @engine or raise PurePrivate::Error, "no extractor engine available"
+        end
       end
     end
   end

@@ -7,30 +7,23 @@ require 'spec'
 
 include Pure
 
-AVAILABLE_PARSERS = ["ruby_parser"] + (
+AVAILABLE_ENGINES = Pure::PurePrivate::Extractor::DEFAULT_ENGINE_SEQUENCE.map {
+  |engine|
   begin
-    require 'ripper'
-    ["ripper"]
-  rescue LoadError
-    []
+    Pure.engine = engine
+  rescue PurePrivate::NotImplementedError
+    nil
   end
-) + (
-  if Method.instance_methods.include? :parameters
-    [nil]
-  else
-    []
-  end
-)
+}.reject { |t| t.nil? }
 
 module Spec::Example::ExampleGroupMethods
   alias_method :example__original, :example
 
   def example(*args, &block)
-    AVAILABLE_PARSERS.each { |parser|
-      parser_desc = parser || "no parser"
-      describe "(#{parser_desc})" do
+    AVAILABLE_ENGINES.each { |engine|
+      describe "(#{engine})" do
         before :each do
-          Pure.parser = parser
+          Pure.engine = engine
         end
         example__original(*args, &block)
       end

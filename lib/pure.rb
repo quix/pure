@@ -12,7 +12,7 @@ module Pure
   end
 
   class << self
-    [:parser, :parser=].each { |name|
+    [:engine, :engine=].each { |name|
       define_method name, &PurePrivate::Extractor.method(name)
     }
   end
