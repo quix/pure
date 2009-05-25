@@ -6,15 +6,13 @@ require 'comp_tree'
 module Pure
   module PurePrivate
     module Driver
-      include FunctionDatabase
-
       module_function
 
       def build_and_compute(mod, root, num_threads, &block)
         begin
           CompTree.build do |driver|
             mod.ancestors.each { |ancestor|
-              if defs = FUNCTION_DATABASE[ancestor]
+              if defs = FunctionDatabase[ancestor]
                 defs.each_pair { |function_name, spec|
                   existing_node = driver.nodes[function_name]
                   if existing_node.nil? or existing_node.function.nil?

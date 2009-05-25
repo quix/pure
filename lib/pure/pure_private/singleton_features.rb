@@ -7,8 +7,6 @@ require 'pure/pure_private/error'
 module Pure
   module PurePrivate
     module SingletonFeatures
-      include FunctionDatabase
-
       def compute(root, opts)
         Driver.create_instance_and_compute(self, root, opts)
       end
@@ -44,7 +42,7 @@ module Pure
           define_method(node_sym, &block)
         }
         spec = Extractor.extract(fun_mod, :fun, caller)
-        FUNCTION_DATABASE[fun_mod][node_sym] = spec.merge(
+        FunctionDatabase[fun_mod][node_sym] = spec.merge(
           :name => node_sym,
           :args => child_syms,
           :origin => :fun
@@ -53,7 +51,7 @@ module Pure
       end
 
       def method_added(function_name)
-        FUNCTION_DATABASE[self][function_name] = (
+        FunctionDatabase[self][function_name] = (
           Extractor.extract(self, function_name, caller).merge(:origin => :def)
         )
       end
