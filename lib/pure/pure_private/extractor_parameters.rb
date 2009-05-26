@@ -9,7 +9,7 @@ module Pure
       module_function
 
       def extract(mod, method_name, file, line)
-        if method_name == :fun
+        if method_name == :__fun
           Hash.new
         else
           {

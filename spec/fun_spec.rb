@@ -119,4 +119,24 @@ describe "`fun' definitions" do
       end
     end.compute(:f, 3).should == [:f]
   end
+
+  it "should not preclude `def' definitions called `fun'" do
+    pure do
+      def amuse(fun)
+        fun*2
+      end
+
+      def fun(a, b)
+        a + b
+      end
+
+      def a
+        3
+      end
+
+      def b
+        5
+      end
+    end.compute(:amuse, 3).should == 16
+  end
 end

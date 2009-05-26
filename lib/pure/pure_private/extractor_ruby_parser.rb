@@ -42,7 +42,7 @@ module Pure
               sexp[1][1] == nil and
               sexp[1][2] == :fun
             @defs[sexp[1].line] = {
-              :name => :fun,
+              :name => :__fun,
               :sexp => [sexp[2], sexp[3]],
             }
             sexp.clear
