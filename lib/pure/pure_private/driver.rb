@@ -8,7 +8,7 @@ module Pure
     module Driver
       module_function
 
-      def build_and_compute(mod, root, num_threads, &block)
+      def build_and_compute(mod, root, num_threads)
         begin
           CompTree.build do |driver|
             mod.ancestors.each { |ancestor|
@@ -18,7 +18,7 @@ module Pure
                   if existing_node.nil? or existing_node.function.nil?
                     final_spec = spec.merge(:module => ancestor)
                     node = driver.define(function_name, *spec[:args])
-                    node.function = yield function_name, final_spec
+                    node.function = yield(function_name, final_spec)
                   end
                 }
               end
