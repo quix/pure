@@ -82,7 +82,7 @@ describe "`fun' definitions" do
       fun :f do
         44
       end
-    end.compute(:f, 10).should == 44
+    end.compute(:f, 10).should eql(44)
 
     pure do
       fun :f do
@@ -92,7 +92,7 @@ describe "`fun' definitions" do
       def f
         33
       end
-    end.compute(:f, 10).should == 33
+    end.compute(:f, 10).should eql(33)
   end
 
   it "should support splat in block args" do

@@ -8,7 +8,7 @@ describe "subsequent `def' definitions" do
       end
     end
 
-    mod.compute(:f, 4).should == 33
+    mod.compute(:f, 4).should eql(33)
 
     mod.module_eval do
       def g
@@ -16,7 +16,7 @@ describe "subsequent `def' definitions" do
       end
     end
 
-    mod.compute(:g, 4).should == 44
+    mod.compute(:g, 4).should eql(44)
   end
 end
 
@@ -28,7 +28,7 @@ describe "subsequent `fun' definitions" do
       end
     end
 
-    mod.compute(:f, 4).should == 33
+    mod.compute(:f, 4).should eql(33)
 
     mod.module_eval do
       fun :g do
@@ -36,7 +36,7 @@ describe "subsequent `fun' definitions" do
       end
     end
 
-    mod.compute(:g, 4).should == 44
+    mod.compute(:g, 4).should eql(44)
   end
 end
 
