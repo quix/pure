@@ -40,20 +40,115 @@ Language-level support for automatic parallelism and lazy evaluation.
 
 +Pure+ is an importation of the pure functional paradigm into Ruby.
 
-Method names and argument names have lexicographical meaning within a
-+pure+ block.  Above, the +width+ argument to +area+ corresponds by
-its literal name to the +width+ method, for example.
+Method and argument names have lexicographical meaning within a +pure+
+block.  In the above example, the +width+ argument to +area+
+corresponds, by its literal name, to the +width+ method.
 
 +pure+ returns a module which may be included into other +pure+ blocks.
 
 Implementation details are placed inside Pure::PurePrivate, making
 <tt>include Pure</tt> a hygienic operation.
 
-Pure does not modify any of the standard classes.
++Pure+ does not modify any of the standard classes.
 
-== Implementation
++Pure+ has been tested on MRI 1.8.6, 1.8.7, 1.9.1, 1.9.2, and the
+latest jruby.
 
-The "ripper" parser is used if it exists, otherwise ruby_parser is
-used.
+=== Dynamic names
 
-Pure has been tested on MRI 1.8.6, 1.8.7, 1.9.1 and the latest jruby.
+The pseudo-keyword `fun' is provided for defining a pure function
+whose name or arguments are not known at compile time.  See
+Pure::PurePrivate::SingletonFeatures.
+
+== Parsing engines
+
+In order to find the names of method arguments, Pure will attempt to
+use, in this order:
+
+* Method#parameters  --  available in ruby-1.9.2.
+* ripper  --  available in ruby-1.9.1.
+* ruby_parser -- available in all ruby implementations (a gem).
+
+The parse engine may set be manually with <tt>Pure.engine=</tt>.
+
+== Purpose
+
+Pure has two main purposes:
+
+* Parallelize system-intensive code and/or system() calls.
+
+* A starting point for parallelizing ruby code across an arbitrary
+  number of cores and/or machines.
+
+In reference to the first point, due to the global VM lock (GVL)
+design in ruby-1.9, the actual execution of Ruby VM instructions is
+not parallelized.  However when a Ruby thread is blocking (for example
+during system call), other threads will be executed.
+
+For second point, consider:
+
+  require 'pp'
+  require 'pure'
+  include Pure
+  
+  adder = pure do
+    def add(left, right)
+      left + right
+    end
+  end
+  
+  pp Pure::PurePrivate::FunctionDatabase[adder]
+  
+output:
+
+  {:add=>
+    {:line=>8,
+     :sexp=>
+      s(:defn,
+       :add,
+       s(:args, :left, :right),
+       s(:scope,
+        s(:block,
+         s(:call, s(:lvar, :left), :+, s(:arglist, s(:lvar, :right)))))),
+     :file=>"pure_adder.rb",
+     :origin=>:def,
+     :args=>[:left, :right],
+     :name=>:add}}
+  
+The basic machinery is present for distributing computations.  A
+function definition and its inputs may be reconstructed
+(e.g. Ruby2Ruby and Marshal/DRb, respectively) on another core or
+computer.
+
+Note if you are using Method#parameters as the parse engine, then you
+will <em>not</em> obtain a sexp.  Furthermore, I am not aware of a
+Ruby2Ruby counterpart for ripper.
+
+== Author
+
+* James M. Lawrence <quixoticsycophant@gmail.com>
+
+== License
+  
+  Copyright (c) 2009 James M. Lawrence.  All rights reserved.
+  
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
