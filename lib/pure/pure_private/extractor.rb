@@ -53,6 +53,7 @@ module Pure
           DEFAULT_ENGINE_SEQUENCE.each { |engine|
             begin
               self.engine = engine
+              break
             rescue PurePrivate::NotImplementedError
             end
           }
