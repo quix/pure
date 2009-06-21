@@ -132,6 +132,20 @@ describe "calling define_method" do
 end
 
 describe "parse engine" do
+  it "finds default engine" do
+    previous = Pure.engine
+    Pure.engine = nil
+    begin
+      pure do
+        def f
+          3 + 4
+        end
+      end.compute(:f, 2).should == 7
+    ensure
+      Pure.engine = previous
+    end
+  end
+    
   it "should raise error when not installed" do
     lambda {
       Pure.engine = "z"*99

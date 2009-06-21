@@ -55,6 +55,7 @@ module Pure
               self.engine = engine
               break
             rescue PurePrivate::NotImplementedError
+              false # rcov workaround
             end
           }
           @engine or raise PurePrivate::Error, "no extractor engine available"
