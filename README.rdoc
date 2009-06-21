@@ -36,6 +36,14 @@ Language-level support for automatic parallelism and lazy evaluation.
   puts((7 + 2)*(5 + 2))
   # => 63
 
+== Install
+
+  % gem install pure
+
+Or for the (non-gem) .tgz package,
+
+  % ruby install.rb [--uninstall]
+
 == Description
 
 +Pure+ is an importation of the pure functional paradigm into Ruby.
@@ -121,8 +129,7 @@ function definition and its inputs may be reconstructed
 computer.
 
 Note if you are using Method#parameters as the parse engine, then you
-will <em>not</em> obtain a sexp.  Furthermore, I am not aware of a
-Ruby2Ruby counterpart for ripper.
+will <em>not</em> obtain a sexp.
 
 == Author
 
