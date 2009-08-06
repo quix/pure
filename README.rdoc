@@ -68,6 +68,27 @@ The pseudo-keyword `fun' is provided for defining a pure function
 whose name or arguments are not known at compile time.  See
 Pure::PurePrivate::SingletonFeatures.
 
+===== Dynamic Example
+
+  require 'pure'
+  include Pure
+  
+  stats = pure do
+    files = Dir["*"]
+  
+    files.each { |file|
+      fun file do
+        File.size(file)
+      end
+    }
+  
+    fun :total_size => files do |*sizes|
+      sizes.inject(0) { |acc, size| acc + size }
+    end
+  end
+
+  puts stats.compute(:total_size, 3)  # => 39355
+
 == Parsing engines
 
 In order to find the names of method arguments, Pure will attempt to
@@ -95,10 +116,14 @@ threads will be executed.
 
 For second point above, consider:
 
+===== Sexp Example
+
   require 'pp'
   require 'pure'
   include Pure
   
+  Pure.engine = :ruby_parser
+
   adder = pure do
     def add(left, right)
       left + right
