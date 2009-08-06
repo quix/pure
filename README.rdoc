@@ -85,15 +85,15 @@ Pure has two main purposes:
 
 * Parallelize system-intensive code and/or system() calls.
 
-* A starting point for parallelizing ruby code across an arbitrary
-  number of cores and/or machines.
+* A basis for parallelizing ruby code across an arbitrary number of
+  cores/machines.
 
-In reference to the first point, due to the global VM lock (GVL)
-design in ruby-1.9, the actual execution of Ruby VM instructions is
-not parallelized.  However when a Ruby thread is blocking (for example
-during system call), other threads will be executed.
+Regarding the first point, due to the global VM lock in ruby-1.9 the
+actual execution of Ruby VM instructions is not parallelized.  However
+when a Ruby thread is blocking (for example during system call), other
+threads will be executed.
 
-For second point, consider:
+For second point above, consider:
 
   require 'pp'
   require 'pure'
