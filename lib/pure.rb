@@ -13,9 +13,9 @@ module Pure
   #
   # A pure module is a regular Ruby module whose singleton class
   # includes PurePrivate::SingletonFeatures and whose methods are
-  # specially registered for lexicographical checking.
+  # specially registered for lexicographical analysis.
   # 
-  # For the purpose of clarity, the methods of a pure module are
+  # In this package's terminology, the methods of a pure module are
   # called <em>pure functions</em>.
   #
   def pure(&block)
