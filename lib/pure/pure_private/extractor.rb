@@ -29,9 +29,10 @@ module Pure
             @engine = nil
           else
             begin
-              name = "extractor_#{engine}"
-              require "pure/pure_private/#{name}_check"
-              @engine = PurePrivate.const_get(to_camel_case(name))
+              require "pure/pure_private/extractor/#{engine}_check"
+              @engine = PurePrivate::Extractor.const_get(
+                to_camel_case(engine.to_s)
+              )
             rescue LoadError
               raise PurePrivate::NotImplementedError,
               "engine not available: #{engine}"
@@ -43,7 +44,9 @@ module Pure
         def engine
           if @engine
             @engine.
-            name[%r!\APure::PurePrivate::Extractor(\w+)\Z!, 1].
+            name.
+            split("::").
+            last.
             gsub(%r![A-Z]!) { |capital| "_" + capital.downcase }[1..-1].
             to_sym
           end
