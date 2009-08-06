@@ -18,6 +18,10 @@ module Pure
       def to_camel_case(str)
         str.split('_').map { |t| t.capitalize }.join
       end
+
+      def to_underscore_case(str)
+        str.gsub(%r![A-Z]!) { |t| "_" + t.downcase }[1..-1]
+      end
     end
   end
 end

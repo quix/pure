@@ -24,31 +24,26 @@ module Pure
           @engine.extract(mod, method_name, file, line)
         end
 
-        def engine=(engine)
-          if engine.nil?
+        def engine=(engine_sym)
+          if engine_sym.nil?
             @engine = nil
           else
             begin
-              require "pure/pure_private/extractor/#{engine}_check"
+              require "pure/pure_private/extractor/#{engine_sym}_check"
               @engine = PurePrivate::Extractor.const_get(
-                to_camel_case(engine.to_s)
+                to_camel_case(engine_sym.to_s)
               )
             rescue LoadError
               raise PurePrivate::NotImplementedError,
-              "engine not available: #{engine}"
+              "engine not available: #{engine_sym}"
             end
           end
-          engine
+          engine_sym
         end
 
         def engine
           if @engine
-            @engine.
-            name.
-            split("::").
-            last.
-            gsub(%r![A-Z]!) { |capital| "_" + capital.downcase }[1..-1].
-            to_sym
+            to_underscore_case(@engine.name.split("::").last).to_sym
           end
         end
 
