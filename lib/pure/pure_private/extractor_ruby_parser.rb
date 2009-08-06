@@ -1,14 +1,14 @@
 
 require 'ruby_parser'
 require 'sexp_processor'
-require 'pure/pure_private/extractor_parser'
+require 'pure/pure_private/extractor_common_parser'
     
 module Pure
   module PurePrivate
     module ExtractorRubyParser
       class << self
         def extract(mod, method_name, file, line)
-          ExtractorParser.extract(mod, method_name, file, line, Processor)
+          ExtractorCommonParser.extract(mod, method_name, file, line, Processor)
         end
       end
 

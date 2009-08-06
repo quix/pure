@@ -4,7 +4,7 @@ require 'pure/pure_private/util'
 
 module Pure
   module PurePrivate
-    module ExtractorParser
+    module ExtractorCommonParser
       @cache = Hash.new { |hash, key| hash[key] = Hash.new }
 
       class << self
