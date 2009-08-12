@@ -1,6 +1,13 @@
 
 = Pure ChangeLog
 
+== Version 0.2.0
+
+* more docs
+* better handling of default parse engine
+* rspec-1.2 changes
+* internal cleanup
+
 == Version 0.1.0
 
 * Initial release.

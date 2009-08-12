@@ -1,26 +1,39 @@
-require File.dirname(__FILE__) + "/common"
+require File.dirname(__FILE__) + '/pure_spec_base'
 
-$LOAD_PATH.unshift File.dirname(__FILE__) + "/../devel"
 require "jumpstart"
 
 readme = "README.rdoc"
 
-Jumpstart.doc_to_spec(readme, "Synopsis")
+simple_sections = [
+ "Synopsis",
+ "Overrides",
+ "Delegates and Blocks",
+ "Combining Pure Modules",
+ "Restrictions",
+ "Default Number of Functions in Parallel",
+]
 
-Jumpstart.doc_to_spec(readme, "Dynamic Example") { |expected, actual|
-  # check for numbers, not values
-  [actual, expected].each { |expr|
-    unless expr =~ %r!\A\d+\Z!
-      raise "readme failed"
-    end
+Jumpstart.doc_to_spec(readme, *simple_sections)
+
+Jumpstart.doc_to_spec(readme, "Dynamic Names") { |expected, actual, index|
+  [expected, actual].each { |expr|
+    expr.should match(%r!\A[\d\s]+\Z!)
   }
-  [nil, nil]
 }
 
-Jumpstart.doc_to_spec(readme, "Sexp Example") { |*expressions|
-  expressions.map { |expresssion|
-    result = eval(expresssion, TOPLEVEL_BINDING)
-    result[:add].merge!(:file => nil, :line => nil)
-    result
-  }
+Jumpstart.doc_to_spec(readme, "Worker Plugins") { |expected, actual, index|
+  case index
+  when 0, 2
+    actual.should == expected
+  when 1
+    require 'ruby_parser'
+    trimmed_expected, trimmed_actual = [expected, actual].map { |expression|
+      result = eval(expression, TOPLEVEL_BINDING)
+      result[0].merge!(:file => nil, :line => nil)
+      result
+    }
+    trimmed_actual.should == trimmed_expected
+  else
+    raise
+  end
 }

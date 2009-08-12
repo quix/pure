@@ -8,9 +8,8 @@ Language-level support for automatic parallelism and lazy evaluation.
 == Synopsis
 
   require 'pure'
-  include Pure
   
-  geometry = pure do
+  geometry = Pure.define do
     def area(width, height)
       width*height
     end
@@ -28,8 +27,8 @@ Language-level support for automatic parallelism and lazy evaluation.
     end
   end
   
-  # compute the area using 3 parallel threads
-  puts geometry.compute(:area, :threads => 3)
+  # Compute the area using 3 parallel threads.
+  puts geometry.compute(3).area
   # => 63
 
   # We've done this computation.
@@ -46,115 +45,513 @@ Or for the (non-gem) .tgz package,
 
 == Description
 
-+Pure+ is an importation of the pure functional paradigm into Ruby.
+Pure imports aspects of the pure functional paradigm into Ruby.
 
-Method and argument names have lexicographical meaning within a +pure+
-block.  In the above example, the +width+ argument to +area+
-corresponds, by its literal name, to the +width+ method.
-
-+pure+ returns a module which may be included into other +pure+ blocks.
-
-Implementation details are placed inside Pure::PurePrivate, making
-<tt>include Pure</tt> a hygienic operation.
+Method and argument names have literal meaning within a
+<tt>Pure.define</tt> block.  In the above example, the +width+
+argument to +area+ corresponds, by its literal name, to the +width+
+method.
 
 +Pure+ does not modify any of the standard classes.
 
 +Pure+ has been tested on MRI 1.8.6, 1.8.7, 1.9.1, 1.9.2, and the
 latest jruby.
 
-=== Dynamic names
+== Terminology
 
-The pseudo-keyword `fun' is provided for defining a pure function
-whose name or arguments are not known at compile time.  See
-Pure::PurePrivate::SingletonFeatures.
+<tt>Pure.define</tt> returns a Module instance, called a <em>pure
+module</em>.  The methods of a pure module are called <em>pure
+functions</em>.
 
-===== Dynamic Example
+== DSL
 
-  require 'pure'
-  include Pure
+The pseudo-keyword +pure+, an alias of Pure.define, is included in the
+global scope with <tt>require 'pure/dsl'</tt>.  It is also made
+available by including Pure::DSL into a class or module.
+
+== Overrides
+
+An options hash given to +compute+ is used for overriding functions in
+the pure module.  If the name of a function matches a hash key, the
+function will be replaced with the corresponding hash value.
+
+  require 'pure/dsl'
+
+  greet = pure do
+    def hello(name)
+      "Hello, #{name}."
+    end
+  
+    def name
+      "Bob"
+    end
+  end
+  
+  puts greet.compute(9).hello
+  # => Hello, Bob.
+
+  puts greet.compute(9, :name => "Ralph").hello
+  # => Hello, Ralph.
+
+  puts greet.compute(9, :hello => "Good evening.").hello
+  # => Good evening.
+
+== Default Number of Functions in Parallel
+
+The _num_parallel_ argument to compute() may be omitted, in which case
+the _num_parallel_ determination falls to <tt>Pure.worker</tt>, an
+object described later in this document.
+
+  require 'pure/dsl'
+
+  Pure.worker.num_parallel = 2
+
+  result = pure do
+    def f(x, y)
+      x + y
+    end
+
+    def x
+      33
+    end
+  end.compute(:y => 44)
+
+  # compute with 2 parallel threads
+  puts result.f  # => 77
+
+== Delegates and Blocks
+
+When no block is given to +compute+, it returns a delegate for the
+computation.  The computation results are stored in the
+lazily-evaluated attributes of the delegate.  A computation is
+performed only when an attribute is requested, and an attribute is
+never recomputed.
+
+When +compute+ is given a block, the delegate is passed to the block
+and the return value of +compute+ is the result of the block.
+
+  require 'pure/dsl'
+
+  geometry = pure do
+    def area(width, height)
+      width*height
+    end
+  
+    def width(border)
+      7 + border
+    end
+  
+    def height(border)
+      5 + border
+    end
+  end
+
+  area = geometry.compute :border => 2 do |result|
+    puts result.border     # => 2
+    puts result[:border]   # => 2
+
+    puts result.width      # => 9
+    puts result.height     # => 7
+
+    result.area
+  end
+
+  puts area  # => 63
+
+Function results may also be accessed with <tt>[]</tt>, as shown in
+<tt>result[:border]</tt> above.
+
+== Combining Pure Modules
+
+Pure modules are regular Module instances.  They may be combined
+freely with +include+.
+
+  require 'pure/dsl'
+
+  greet = pure do
+    def hello(name)
+      "Hello, #{name}."
+    end
+  end
+
+  ralph = pure do
+    include greet
+    def name
+      "Ralph"
+    end
+  end
+
+  puts ralph.compute.hello
+  # => Hello, Ralph.
+
+== Dynamic Names
+
+The pseudo-keyword +fun+ is provided for defining a pure function
+whose name or arguments are unknown at compile time.
+
+  require 'pure/dsl'
+
+  geometry = pure do
+    fun :area => [:width, :height] do |w, h|
+      w*h
+    end
+
+    def width
+      4
+    end
+
+    fun :height do
+      5
+    end
+  end
+
+  puts geometry.compute.area  # => 20
+
+Or more realistically,
+
+  require 'pure/dsl'
   
   stats = pure do
     files = Dir["*"]
   
     files.each { |file|
       fun file do
-        File.size(file)
+        File.stat(fun_name.to_s)
       end
     }
   
-    fun :total_size => files do |*sizes|
-      sizes.inject(0) { |acc, size| acc + size }
+    fun :total_size => files do |*values|
+      values.inject(0) { |acc, stat| acc + stat.size }
     end
   end
 
-  puts stats.compute(:total_size, 3)  # => 39355
+  stats.compute { |result|
+    puts result["Rakefile"].size  # => 505
+    puts result.total_size        # => 39355
+  }
 
-== Parsing engines
+The left of side <tt>=></tt> is the function name.  The right side is
+an array containing the names of the function arguments.  The values
+of the function arguments are passed to the block.
 
-In order to find the names of method arguments, Pure will attempt to
-use, in this order:
+== Restrictions
 
-* Method#parameters  --  available in ruby-1.9.2.
-* ripper  --  available in ruby-1.9.1.
-* ruby_parser -- available in all ruby implementations (a gem).
+Since the grand scheme of Pure rests upon all functions and function
+arguments having a name, a pure function defined with +def+ cannot
+have a <tt>*splat</tt> argument.  Naturally this restriction does not
+apply to pure functions defined with +fun+.
 
-The parse engine may set be manually with <tt>Pure.engine=</tt>.
+  require 'pure/dsl'
+
+  pure do
+    def f(*args)  # => raises Pure::SplatError
+    end
+
+    fun :g => [:x, :y] do |*args|  # OK
+      args.map { |a| a**2 }
+    end
+  end
+
+A block is never passed to a pure function (except if called manually,
+of course).
+
+A pure function cannot have default arguments.
+
+A pure function cannot reference variables declared outside the
+function definition, as the next section explains.
+
+== Referencing Function and Argument Names
+
+Inside a pure function, +fun_name+ gives the name of the function and
++arg_names+ gives the names of its arguments.  Notice in the "Dynamic
+Names" example,
+
+  files.each { |file|
+    fun file do
+      File.stat(fun_name.to_s)
+    end
+  }
+  
+Here, <tt>fun_name.to_s</tt> is exactly the same as +file+.  So why
+not call <tt>File.stat(file)</tt>?  Pure functions are extracted from
+their surrounding context and must therefore use function arguments as
+the sole means of communication.  In this case
+<tt>File.stat(file)</tt> references +file+ which lies outside the
+function definition.
+
+== Background
+
+The user should have a basic understanding of <em>functional
+programming</em> (see for example
+http://en.wikipedia.org/wiki/Functional_programming) and the meaning
+of <em>side effects</em>.
+
+Every pure function you define must explicitly depend on the data it uses.
+
+  #
+  # BAD example: depending on state DATA.value
+  #
+  geometry = pure do
+    def area(width, height)
+      width*height - DATA.value
+    end
+  end
+    
+Unless offset <tt>DATA.value</tt> is really a constant, the
+computation result is in general not well-defined.
+
+Just as depending on some changeable state is bad, it is likewise bad
+to affect a state (to produce a <em>side effect</em>).
+
+  #
+  # BAD example: affecting state
+  #
+  geometry = pure do
+    def area(width, height)
+      ACCUMULATOR.add "more data"
+      width*height
+    end
+  end
+    
+Given a pure computation where functions are modifying +ACCUMULATOR+,
+the end state of +ACCUMULATOR+ is not well-defined, even if
+the methods of +ACCUMULATOR+ are thread-safe.
+
+== Philosophy
+
+Languages which are purely functional (e.g. Haskell) employ special
+constructs (e.g. monads) for dealing with side-effects.  This project
+aims to fulfill the converse with respect to Ruby.
+
+Haskell code is pure (non-side-effecting) by default, with non-pure
+operations being stuffed into monads.  Ruby code is non-pure
+(side-effecting) by default, with pure code being isolated to +pure+
+blocks.
 
 == Purpose
 
-Pure has two main purposes:
+Pure has two main goals:
 
-* Parallelize system-intensive code and/or system() calls.
+* Parallelize system-intensive code, e.g. system() calls.
 
-* A basis for parallelizing ruby code across an arbitrary number of
-  cores/machines.
+* Provide a framework for parallelizing Ruby code across an arbitrary number of cores/machines.
 
-Regarding the first point, due to the global VM lock in ruby-1.9 the
-actual execution of Ruby VM instructions is not parallelized.  However
-when a Ruby thread is blocking (for example during system call), other
-threads will be executed.
+Due to the global VM lock in Ruby 1.9, the actual execution of Ruby VM
+instructions is not parallelized.  However when a Ruby thread is
+blocking during a system call, other threads will be executed.
+Contrariwise in Ruby 1.8 the whole interpreter is blocked during a
+system call.
 
-For second point above, consider:
+The next section addresses the second point above.
 
-===== Sexp Example
+== Technical Details
 
-  require 'pp'
-  require 'pure'
-  include Pure
+=== Parser Plugins
+
+Pure uses a parser plugin to extract the definition of a method from
+Ruby code, or to at least discover the names of method arguments.
+Three parsers are bundled with Pure,
+
+* Pure::Parser::Internal -- <tt>require 'pure/parser/parameters'</tt> -- ruby-1.9.2 only
+* Pure::Parser::Ripper -- <tt>require 'pure/parser/ripper'</tt> -- ruby-1.9 only
+* Pure::Parser::RubyParser -- <tt>require 'pure/parser/ruby_parser'</tt> -- any ruby
+ 
+The default is tried in that order.
+
+The current parser may be changed via the <tt>Pure.parser</tt>
+attribute.  A pure module is tied to a parser when the module is
+created.
+
+The only requirement for a parser plugin is to properly implement an
+extract() method.
+
+=== Worker Plugins
+
+A worker plugin is a class which defines what happens when a pure
+function is triggered to execute.  A worker instance is tied to the
+computation delegate returned by compute().
+
+The default worker looks like this:
   
-  Pure.engine = :ruby_parser
+  module Pure
+    class NativeWorker
+      attr_reader :num_parallel
+  
+      def define_function_begin(pure_module, num_parallel)
+        @num_parallel = num_parallel || self.class.num_parallel
+        @class = Class.new Names do
+          include pure_module
+        end
+      end
+  
+      def define_function(spec)
+        lambda { |*args|
+          @class.new(spec[:name], spec[:args]).send(spec[:name], *args)
+        }
+      end
+  
+      def define_function_end
+      end
+  
+      class << self
+        attr_accessor :num_parallel
+      end
+      @num_parallel = 1
+    end
+  end
 
-  adder = pure do
+The following example illustrates the internals.
+
+  require 'pure/dsl'
+  require 'pure/parser/ruby_parser'
+  
+  class FakeWorker
+    #
+    # This method is called for each pure function in the pure module.
+    #
+    # Returns a lambda which computes the function described by spec.
+    #
+    # For this fake worker, we just return the function info.
+    #
+    def define_function(spec)
+      lambda { |*args|
+        [spec, args]
+      }
+    end
+    
+    #
+    # Called before all define_function calls.
+    #
+    # pure_module is the receiver of compute().
+    #
+    # num_parallel is the hint passed to compute(), or nil if no
+    # hint was given.  A worker is free to ignore it, as we do here.
+    #
+    def define_function_begin(pure_module, num_parallel)
+    end
+    
+    #
+    # Called after all define_function calls.
+    #
+    def define_function_end
+    end
+
+    #
+    # When a computation begins, the parallelizing engine asks the
+    # worker how many functions to run in parallel.
+    #
+    def num_parallel
+      2
+    end
+
+    class << self
+      #
+      # A num_parallel hint for this worker.  A worker is free to
+      # ignore this as well.
+      #
+      attr_accessor :num_parallel
+    end
+  end
+  
+  adder = pure(Pure::Parser::RubyParser) do
     def add(left, right)
       left + right
     end
   end
   
-  pp Pure::PurePrivate::FunctionDatabase[adder]
-  
-output:
+  require 'pp'
+  pp adder.compute(FakeWorker, :left => 33, :right => 44).add
 
-  {:add=>
-    {:line=>8,
-     :sexp=>
-      s(:defn,
-       :add,
-       s(:args, :left, :right),
-       s(:scope,
-        s(:block,
-         s(:call, s(:lvar, :left), :+, s(:arglist, s(:lvar, :right)))))),
-     :file=>"pure_adder.rb",
-     :origin=>:def,
-     :args=>[:left, :right],
-     :name=>:add}}
-  
-The basic machinery is present for distributing computations.  A
-function definition and its inputs may be reconstructed
-(e.g. Ruby2Ruby and Marshal/DRb, respectively) on another core or
-computer.
+  #### output:
 
-Note if you are using Method#parameters as the parse engine, then you
-will <em>not</em> obtain a sexp.
+  [{:name=>:add,
+    :args=>[:left, :right],
+    :code=>
+     s(:defn,
+      :add,
+      s(:args, :left, :right),
+      s(:scope,
+       s(:block, s(:call, s(:lvar, :left), :+, s(:arglist, s(:lvar, :right)))))),
+    :splat=>false,
+    :default=>false,
+    :file=>"fake_worker.rb",
+    :line=>29,
+    :origin=>:def,
+    :parser=>"Pure::Parser::RubyParser"},
+   [33, 44]]
+
+Note the Pure::Parser::Internal parser will not generate a
+<tt>:code</tt> entry, as it just calls Method#parameters and does no
+parsing.
+
+=== Compilers
+
+A compiler converts a function spec (the hash in the previous output)
+into a callable Ruby object.
+
+With the addition of a compiler, we have all the components necessary
+for distributing computations.  A function definition and its inputs
+may be reconstructed on another Ruby interpreter.
+
+  require 'pure/dsl'
+  require 'pure/parser/ruby_parser'
+  require 'pure/compiler/ruby_parser'
+  
+  class ExternalWorker
+    def initialize
+      @compiler = Pure::Compiler::RubyParser.new
+    end
+
+    def define_function(spec)
+      lambda { |*args|
+        @compiler.evaluate_function(spec, *args)
+      }
+    end
+      
+    def define_function_begin(pure_module, num_parallel)
+    end
+        
+    def define_function_end
+    end
+        
+    def num_parallel
+      2
+    end
+        
+    class << self
+      attr_accessor :num_parallel
+    end
+  end
+  
+  pure(Pure::Parser::RubyParser) do
+    def add(left, right)
+      left + right
+    end
+  end.compute(ExternalWorker, :left => 33, :right => 44) do |result|
+    puts result.add  # => 77
+  end
+
+See http://github.com/quix/tiamat for an example of a
+multi-core/multi-machine worker plugin for Pure.
+
+Pure::Compiler::RubyParser uses RubyParser and Ruby2Ruby together with
+a code transformer (for instantiating +fun+ definitions) to compile a
+function spec.
+
+Lobby your local ruby-core representative to add Method#sexp for
+obtaining sexp data along with Compiler.compile_sexp which reads the
+sexp data.  Until then we are stuck this roundabout inefficient
+process:
+
+* Ruby interpreter parses the source;
+* RubyParser (redundantly) parses the source and converts it to an sexp;
+* Ruby2Ruby converts the sexp to a string containing Ruby code;
+* Ruby interpreter calls +eval+ on the code string.
+
+This could be reduced to:
+
+* Ruby interpreter parses the source;
+* Call Method#sexp and Compiler.compile_sexp.
 
 == Author
 

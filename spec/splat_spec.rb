@@ -1,15 +1,16 @@
-require File.dirname(__FILE__) + "/common"
+require File.dirname(__FILE__) + '/pure_spec_base'
 
-describe "splat (*) argument in pure function" do
-  describe "with `def'" do
-    it "should raise error" do
-      lambda {
-        pure do
-          def f(a, b, *stuff)
-            stuff
-          end
-        end
-      }.should raise_error(Pure::PurePrivate::SplatError, %r!cannot use splat!)
+describe "splat" do
+  it "should be allowed outside of pure" do
+    Class.new do
+      def f(*args)
+      end
+    end
+
+    pure do
+      def g
+        44
+      end
     end
   end
 end

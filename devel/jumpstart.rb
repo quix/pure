@@ -1,26 +1,272 @@
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
-$LOAD_PATH.unshift File.dirname(__FILE__)
-
-require 'rubygems'
-require 'ostruct'
-require 'rbconfig'
-
-require 'rake/gempackagetask'
-require 'rake/contrib/sshpublisher'
-require 'rake/clean'
-
-require 'rdoc/rdoc'
-
-require 'jumpstart/ruby'
-require 'jumpstart/attr_lazy'
-require 'jumpstart/simple_installer'
 
 class Jumpstart
-  include AttrLazy
+  class SimpleInstaller
+    def initialize
+      require 'fileutils'
+      require 'rbconfig'
+      require 'find'
+      dest_root = Config::CONFIG["sitelibdir"]
+      sources = []
+      Find.find("./lib") { |source|
+        if install_file?(source)
+          sources << source
+        end
+      }
+      @spec = sources.inject(Array.new) { |acc, source|
+        if source == "./lib"
+          acc
+        else
+          dest = File.join(dest_root, source.sub(%r!\A\./lib!, ""))
+  
+          install = lambda {
+            if File.directory?(source)
+              unless File.directory?(dest)
+                puts "mkdir #{dest}"
+                FileUtils.mkdir(dest)
+              end
+            else
+              puts "install #{source} --> #{dest}"
+              FileUtils.install(source, dest)
+            end
+          }
+            
+          uninstall = lambda {
+            if File.directory?(source)
+              if File.directory?(dest)
+                puts "rmdir #{dest}"
+                FileUtils.rmdir(dest)
+              end
+            else
+              if File.file?(dest)
+                puts "rm #{dest}"
+                FileUtils.rm(dest)
+              end
+            end
+          }
+  
+          acc << {
+            :source => source,
+            :dest => dest,
+            :install => install,
+            :uninstall => uninstall,
+          }
+        end
+      }
+    end
+  
+    def install_file?(source)
+      File.directory?(source) or
+      (File.file?(source) and File.extname(source) == ".rb")
+    end
 
-  attr_reader :project_name
+    def install
+      @spec.each { |entry|
+        entry[:install].call
+      }
+    end
+  
+    def uninstall
+      @spec.reverse.each { |entry|
+        entry[:uninstall].call
+      }
+    end
+
+    def run(args = ARGV)
+      if args.empty?
+        install
+      elsif args.size == 1 and args.first == "--uninstall"
+        uninstall
+      else
+        raise "unrecognized arguments: #{args.inspect}"
+      end
+    end
+  end
+
+  module AttrLazy
+    def attr_lazy(name, &block)
+      AttrLazy.define_reader(class << self ; self ; end, name, &block)
+    end
+
+    def attr_lazy_accessor(name, &block)
+      attr_lazy(name, &block)
+      AttrLazy.define_writer(class << self ; self ; end, name, &block)
+    end
+
+    class << self
+      def included(mod)
+        (class << mod ; self ; end).class_eval do
+          def attr_lazy(name, &block)
+            AttrLazy.define_reader(self, name, &block)
+          end
+
+          def attr_lazy_accessor(name, &block)
+            attr_lazy(name, &block)
+            AttrLazy.define_writer(self, name, &block)
+          end
+        end
+      end
+
+      def define_evaluated_reader(instance, name, value)
+        (class << instance ; self ; end).class_eval do
+          remove_method name rescue nil
+          define_method name do
+            value
+          end
+        end
+      end
+
+      def define_reader(klass, name, &block)
+        klass.class_eval do
+          remove_method name rescue nil
+          define_method name do
+            value = instance_eval(&block)
+            AttrLazy.define_evaluated_reader(self, name, value)
+            value
+          end
+        end
+      end
+
+      def define_writer(klass, name, &block)
+        klass.class_eval do
+          writer = "#{name}="
+          remove_method writer rescue nil
+          define_method writer do |value|
+            AttrLazy.define_evaluated_reader(self, name, value)
+            value
+          end
+        end
+      end
+    end
+  end
+
+  module Ruby
+    module_function
+
+    def executable
+      require 'rbconfig'
+
+      name = File.join(
+        Config::CONFIG["bindir"],
+        Config::CONFIG["RUBY_INSTALL_NAME"]
+      )
+
+      if Config::CONFIG["host"] =~ %r!(mswin|cygwin|mingw)! and
+          File.basename(name) !~ %r!\.(exe|com|bat|cmd)\Z!i
+        name + Config::CONFIG["EXEEXT"]
+      else
+        name
+      end
+    end
+
+    def run(*args)
+      cmd = [executable, *args]
+      unless system(*cmd)
+        cmd_str = cmd.map { |t| "'#{t}'" }.join(", ")
+        raise "system(#{cmd_str}) failed with status #{$?.exitstatus}"
+      end
+    end
+
+    def run_code_and_capture(code)
+      IO.popen(%{"#{executable}"}, "r+") { |pipe|
+        pipe.print(code)
+        pipe.flush
+        pipe.close_write
+        pipe.read
+      }
+    end
+
+    def run_file_and_capture(file)
+      unless File.file? file
+        raise "file does not exist: `#{file}'"
+      end
+      IO.popen(%{"#{executable}" "#{file}"}, "r") { |pipe|
+        pipe.read
+      }
+    end
+      
+    def with_warnings(value = true)
+      previous = $VERBOSE
+      $VERBOSE = value
+      begin
+        yield
+      ensure
+        $VERBOSE = previous
+      end
+    end
+      
+    def no_warnings(&block)
+      with_warnings(nil, &block)
+    end
+  end
+
+  module Util
+    module_function
+
+    def run_ruby_on_each(*files)
+      files.each { |file|
+        Ruby.run("-w", file)
+      }
+    end
+
+    def to_camel_case(str)
+      str.split('_').map { |t| t.capitalize }.join
+    end
+
+    def write_file(file)
+      contents = yield
+      File.open(file, "wb") { |out|
+        out.print(contents)
+      }
+      contents
+    end
+
+    def replace_file(file)
+      old_contents = File.read(file)
+      new_contents = yield(old_contents)
+      if old_contents != new_contents
+        File.open(file, "wb") { |output|
+          output.print(new_contents)
+        }
+      end
+      new_contents
+    end
+  end
+
+  module InstanceEvalWithArgs
+    module_function
+
+    def with_temp_method(instance, method_name, method_block)
+      (class << instance ; self ; end).class_eval do
+        define_method(method_name, &method_block)
+        begin
+          yield method_name
+        ensure
+          remove_method(method_name)
+        end
+      end
+    end
+
+    def call_temp_method(instance, method_name, *args, &method_block)
+      with_temp_method(instance, method_name, method_block) {
+        instance.send(method_name, *args)
+      }
+    end
+
+    def instance_eval_with_args(instance, *args, &block)
+      call_temp_method(instance, :__temp_method, *args, &block)
+    end
+  end
+
+  include AttrLazy
+  include Util
 
   def initialize(project_name)
+    $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+    $LOAD_PATH.unshift File.dirname(__FILE__)
+
+    require 'rake/gempackagetask'
+    require 'rake/clean'
+
     @project_name = project_name
 
     yield self
@@ -37,16 +283,26 @@ class Jumpstart
   end
 
   attribute :name do
-    project_name
+    @project_name
+  end
+
+  attribute :version_constant_name do
+    "VERSION"
   end
 
   attribute :version do
     require name
-    mod = to_camel_case(name)
-    
-    (full_const_get("#{mod}::VERSION") rescue nil) ||
-    (full_const_get("#{mod}::#{mod}Private::VERSION") rescue nil) ||
-    "0.0.0"
+    mod_name = to_camel_case(name)
+    begin
+      mod = Kernel.const_get(mod_name)
+      if mod.constants.include?(version_constant_name)
+        mod.const_get(version_constant_name)
+      else
+        raise
+      end
+    rescue
+      "0.0.0"
+    end
   end
   
   attribute :rubyforge_name do
@@ -70,22 +326,30 @@ class Jumpstart
   end
   
   attribute :spec_files do
-    Dir["spec/*_{spec,example}.rb"]
+    Dir["./spec/*_{spec,example}.rb"]
   end
   
   attribute :test_files do
-    (Dir["test/test_*.rb"] + Dir["test/*_test.rb"]).uniq
+    (Dir["./test/test_*.rb"] + Dir["./test/*_test.rb"]).uniq
   end
   
   attribute :rcov_dir do
     "coverage"
   end
   
-  attribute :spec_output do
+  attribute :spec_output_dir do
+    "rspec_output"
+  end
+
+  attribute :spec_output_file do
     "spec.html"
   end
 
-  [:gem, :tgz].map { |ext|
+  attr_lazy :spec_output do
+    "#{spec_output_dir}/#{spec_output_file}"
+  end
+
+  [:gem, :tgz].each { |ext|
     attribute ext do
       "pkg/#{name}-#{version}.#{ext}"
     end
@@ -110,11 +374,15 @@ class Jumpstart
     "MANIFEST"
   end
 
+  attribute :generated_files do
+    []
+  end
+
   attribute :files do
     if File.exist?(manifest_file)
       File.read(manifest_file).split("\n")
     else
-      [manifest_file] + `git ls-files`.split("\n")
+      `git ls-files`.split("\n") + [manifest_file] + generated_files
     end
   end
 
@@ -143,6 +411,7 @@ class Jumpstart
   end
 
   attribute :browser do
+    require 'rbconfig'
     if Config::CONFIG["host"] =~ %r!darwin!
       app = %w[Firefox Safari].map { |t|
         "/Applications/#{t}.app"
@@ -201,9 +470,10 @@ class Jumpstart
   end
   
   attribute :sections do
+    require 'enumerator'
     begin
-      pairs = Hash[*readme_contents.split(%r!^== (\w+).*?$!)[1..-1]].map {
-        |section, contents|
+      data = readme_contents.split(%r!^==\s*(.*?)\s*$!)
+      pairs = data[1..-1].enum_slice(2).map { |section, contents|
         [section.downcase, contents.strip]
       }
       Hash[*pairs.flatten]
@@ -328,7 +598,7 @@ class Jumpstart
       task :prerelease => [:spec, :spec_deps]
       task :default => :spec
 
-      CLEAN.include spec_output
+      CLEAN.include spec_output_dir
     end
   end
 
@@ -370,6 +640,7 @@ class Jumpstart
   def define_doc
     desc "run rdoc"
     task :doc => :clean_doc do
+      require 'rdoc/rdoc'
       args = (
         gemspec.rdoc_options +
         gemspec.require_paths.clone +
@@ -396,6 +667,7 @@ class Jumpstart
   def define_publish
     desc "upload docs"
     task :publish => [:clean_doc, :doc] do
+      require 'rake/contrib/sshpublisher'
       Rake::SshDirPublisher.new(
         "#{rubyforge_user}@rubyforge.org",
         "/var/www/gforge-projects/#{rubyforge_name}",
@@ -438,9 +710,10 @@ class Jumpstart
       end
 
       def debug_info(enable)
+        require 'find'
         Find.find("lib", "test") { |path|
           if path =~ %r!\.rb\Z!
-            Jumpstart.replace_file(path) { |contents|
+            replace_file(path) { |contents|
               result = comment_regions(!enable, contents, "debug")
               comment_lines(!enable, result, "trace")
             }
@@ -477,10 +750,10 @@ class Jumpstart
   def define_comments
     task :comments do
       file = "comments.txt"
-      Jumpstart.write_file(file) {
+      write_file(file) {
         result = Array.new
-        (["Rakefile"] + Dir["**/*.{rb,rake}"]).each { |file|
-          File.read(file).scan(%r!\#[^\{].*$!) { |match|
+        (["Rakefile"] + Dir["**/*.{rb,rake}"]).each { |f|
+          File.read(f).scan(%r!\#[^\{].*$!) { |match|
             result << match
           }
         }
@@ -500,6 +773,7 @@ class Jumpstart
 
   def define_ping
     task :ping do
+      require 'rbconfig'
       %w[github.com rubyforge.org].each { |server|
         cmd = "ping " + (
           if Config::CONFIG["host"] =~ %r!darwin!
@@ -536,24 +810,23 @@ class Jumpstart
   end
 
   def create_manifest
-    Jumpstart.write_file(manifest_file) {
+    write_file(manifest_file) {
       files.sort.join("\n")
     }
   end
 
-  def rubyforge(command, file)
-    sh(
-      "rubyforge",
-      command,
+  def rubyforge(mode, file, *options)
+    command = ["rubyforge", mode] + options + [
       rubyforge_name,
       rubyforge_name,
       version.to_s,
-      file
-    )
+      file,
+    ]
+    sh(*command)
   end
 
   def define_release
-    task :prerelease => [:clean, :check_directory, :ping]
+    task :prerelease => [:clean, :check_directory, :ping, history_file]
 
     task :finish_release do
       gem_md5, tgz_md5 = [gem, tgz].map { |file|
@@ -562,7 +835,9 @@ class Jumpstart
         md5
       }
 
-      rubyforge("add_release", gem)
+      rubyforge(
+        "add_release", gem, "--release_changes", history_file, "--preformatted"
+      )
       [gem_md5, tgz, tgz_md5].each { |file|
         rubyforge("add_file", file)
       }
@@ -584,85 +859,74 @@ class Jumpstart
     sh(*([browser].flatten + files))
   end
 
-  def run_ruby_on_each(*files)
-    files.each { |file|
-      Ruby.run("-w", file)
-    }
-  end
-
-  def to_camel_case(str)
-    str.split('_').map { |t| t.capitalize }.join
-  end
-
-  def full_const_get(string)
-    string.split("::").inject(Object) { |acc, name|
-      if acc.constants.include?(name)
-        acc.const_get(name)
-      else
-        raise NameError, "uninitialized constant #{string}"
-      end
-    }
-  end
-
   class << self
-    def write_file(file)
-      contents = yield
-      File.open(file, "wb") { |out|
-        out.print(contents)
-      }
-      contents
+    include Util
+    include InstanceEvalWithArgs
+
+    # From minitest, part of the Ruby source; by Ryan Davis.
+    def capture_io
+      require 'stringio'
+
+      orig_stdout, orig_stderr         = $stdout, $stderr
+      captured_stdout, captured_stderr = StringIO.new, StringIO.new
+      $stdout, $stderr                 = captured_stdout, captured_stderr
+
+      yield
+
+      return captured_stdout.string, captured_stderr.string
+    ensure
+      $stdout = orig_stdout
+      $stderr = orig_stderr
     end
 
-    def replace_file(file)
-      old_contents = File.read(file)
-      new_contents = yield(old_contents)
-      if old_contents != new_contents
-        File.open(file, "wb") { |output|
-          output.print(new_contents)
-        }
-      end
-      new_contents
-    end
-
-    def run_doc_section(file, section)
-      require 'tempfile'
-
-      body, expected = (
-        contents = File.read(file)
-        re = %r!^=+[ \t]*#{section}.*?^(.*?)^(\S.*?)\s*?^(.*?)^\S!m
-        if match = contents.match(re)
-          if match[2] == "output:"
-            [match[1], match[3]]
-          else
-            [match[1], match[1].scan(%r!\# => (.*?)\n!).flatten.join("\n")]
-          end
-        else
-          raise "couldn't find section `#{section}' of `#{file}'"
-        end
-      )
-
+    def run_doc_code(code, expected, index, instance, &block)
       lib = File.expand_path(File.dirname(__FILE__) + "/../lib")
       header = %{
         $LOAD_PATH.unshift "#{lib}"
         require 'rubygems'
+        begin
       }
-      code = header + body
-
-      actual = nil
-      Tempfile.open("run-ruby-#{file}") { |temp_file|
-        temp_file.print(code)
-        temp_file.close
-        result = `"#{::Jumpstart::Ruby::EXECUTABLE}" "#{temp_file.path}"`
-        unless $?.exitstatus == 0
-          raise "failed to run ruby"
+      footer = %{
+        rescue Exception => __jumpstart_exception
+          puts "raises \#{__jumpstart_exception.class}"
         end
-        actual = result.chomp
+      }
+      final_code = header + code + footer
+
+      # Sometimes code is required to be inside a file.
+      actual = nil
+      require 'tempfile'
+      Tempfile.open("run-rdoc-code") { |temp_file|
+        temp_file.print(final_code)
+        temp_file.close
+        actual = Ruby.run_file_and_capture(temp_file.path).chomp
       }
 
-      if block_given?
-        yield expected, actual
+      instance_eval_with_args(instance, expected, actual, index, &block)
+    end
+
+    def run_doc_section(file, section, instance, &block)
+      contents = File.read(file)
+      re = %r!^=+[ \t]#{Regexp.quote(section)}.*?\n(.*?)^=!m
+      if section_contents = contents[re, 1]
+        index = 0
+        section_contents.scan(%r!^(  \S.*?)(?=(^\S|\Z))!m) { |indented, unused|
+          code_sections = indented.split(%r!^  \#\#\#\# output:\s*$!)
+          code, expected = (
+            case code_sections.size
+            when 1
+              [indented, indented.scan(%r!\# => (.*?)\n!).flatten.join("\n")]
+            when 2
+              code_sections
+            else
+              raise "parse error"
+            end
+          )
+          run_doc_code(code, expected, index, instance, &block)
+          index += 1
+        }
       else
-        [expected, actual]
+        raise "couldn't find section `#{section}' of `#{file}'"
       end
     end
 
@@ -670,10 +934,16 @@ class Jumpstart
       jump = self
       describe file do
         sections.each { |section|
-          describe section do
+          describe "section `#{section}'" do
             it "should run as claimed" do
-              expected, actual = jump.run_doc_section(file, section, &block)
-              actual.should == expected
+              if block
+                jump.run_doc_section(file, section, self, &block)
+              else
+                jump.run_doc_section(file, section, self) {
+                  |expected, actual, index|
+                  actual.should == expected
+                }
+              end
             end
           end
         }
@@ -685,14 +955,18 @@ class Jumpstart
       klass = Class.new Test::Unit::TestCase do
         sections.each { |section|
           define_method "test_#{file}_#{section}" do
-            expected, actual = jump.run_doc_section(file, section, &block)
-            assert_equal expected, actual
+            if block
+              jump.run_doc_section(file, section, self, &block)
+            else
+              jump.run_doc_section(file, section, self) {
+                |expected, actual, index|
+                assert_equal expected, actual
+              }
+            end
           end
         }
       end
-      # minitest fails without a const name in 1.9
       Object.const_set("Test#{file}".gsub(".", ""), klass)
     end
   end
 end
-
