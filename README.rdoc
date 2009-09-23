@@ -352,7 +352,7 @@ Pure uses a parser plugin to extract the definition of a method from
 Ruby code, or to at least discover the names of method arguments.
 Three parsers are bundled with Pure,
 
-* Pure::Parser::Internal -- <tt>require 'pure/parser/parameters'</tt> -- ruby-1.9.2 only
+* Pure::Parser::Internal -- <tt>require 'pure/parser/internal'</tt> -- ruby-1.9.2 only
 * Pure::Parser::Ripper -- <tt>require 'pure/parser/ripper'</tt> -- ruby-1.9 only
 * Pure::Parser::RubyParser -- <tt>require 'pure/parser/ruby_parser'</tt> -- any ruby
  
