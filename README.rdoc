@@ -257,14 +257,14 @@ of course).
 
 A pure function cannot have default arguments.
 
-A pure function cannot reference variables declared outside the
+A pure function should not reference variables declared outside the
 function definition, as the next section explains.
 
 == Referencing Function and Argument Names
 
 Inside a pure function, +fun_name+ gives the name of the function and
 +arg_names+ gives the names of its arguments.  Notice in the "Dynamic
-Names" example,
+Names" example above,
 
   files.each { |file|
     fun file do
@@ -278,6 +278,9 @@ their surrounding context and must therefore use function arguments as
 the sole means of communication.  In this case
 <tt>File.stat(file)</tt> references +file+ which lies outside the
 function definition.
+
+The above is strictly not necessary when the default worker (explained
+later) is used, however the best strategy is to ignore this detail.
 
 == Background
 
@@ -325,7 +328,7 @@ aims to fulfill the converse with respect to Ruby.
 
 Haskell code is pure (non-side-effecting) by default, with non-pure
 operations being stuffed into monads.  Ruby code is non-pure
-(side-effecting) by default, with pure code being isolated to +pure+
+(side-effecting) by default, with pure code being stuffed into +pure+
 blocks.
 
 == Purpose
@@ -348,9 +351,8 @@ The next section addresses the second point above.
 
 === Parser Plugins
 
-Pure uses a parser plugin to extract the definition of a method from
-Ruby code, or to at least discover the names of method arguments.
-Three parsers are bundled with Pure,
+Pure uses a parser plugin to extract the +def+ and +fun+ definitions
+inside a pure module.  Three parsers are bundled with Pure,
 
 * Pure::Parser::Internal -- <tt>require 'pure/parser/internal'</tt> -- ruby-1.9.2 only
 * Pure::Parser::Ripper -- <tt>require 'pure/parser/ripper'</tt> -- ruby-1.9 only
@@ -538,20 +540,20 @@ Pure::Compiler::RubyParser uses RubyParser and Ruby2Ruby together with
 a code transformer (for instantiating +fun+ definitions) to compile a
 function spec.
 
-Lobby your local ruby-core representative to add Method#sexp for
-obtaining sexp data along with Compiler.compile_sexp which reads the
-sexp data.  Until then we are stuck this roundabout inefficient
-process:
+Lobby your local ruby-core representative to add a built-in sexp
+extractor and compiler.  Lacking these tools, we are stuck this
+roundabout and inefficient process:
 
-* Ruby interpreter parses the source;
-* RubyParser (redundantly) parses the source and converts it to an sexp;
-* Ruby2Ruby converts the sexp to a string containing Ruby code;
-* Ruby interpreter calls +eval+ on the code string.
+* Ruby interpreter parses the source
+* RubyParser (redundantly) parses the source and converts it to an sexp
+* Ruby2Ruby converts the sexp to a string containing Ruby code
+* call +eval+ on the code string
 
 This could be reduced to:
 
-* Ruby interpreter parses the source;
-* Call Method#sexp and Compiler.compile_sexp.
+* Ruby interpreter parses the source
+* call Proc#to_sexp
+* call Proc.from_sexp
 
 == Author
 
