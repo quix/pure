@@ -1,11 +1,8 @@
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../devel'
 
-require 'rubygems'
-
 require 'pure/dsl'
 require 'pure/bundled_compilers'
-
 require 'spec/autorun'
 
 TOPLEVEL_INSTANCE = self
