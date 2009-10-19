@@ -2,7 +2,6 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../devel'
 
 require 'pure/dsl'
-require 'pure/bundled_compilers'
 require 'spec/autorun'
 
 TOPLEVEL_INSTANCE = self
@@ -33,11 +32,17 @@ module CompilerWorker
     end
   end
 
-  Pure::BundledCompilers.available.each_pair { |compiler_path, compiler|
+  Pure::BundledParsers.available.values.map { |parser|
+    parser.compiler rescue nil
+  }.compact.each { |path, name|
+    names = name.split("::")
     worker = Class.new Base do
-      @compiler = compiler
+      require path
+      @compiler = names.inject(Object) { |mod, name|
+        mod.const_get(name)
+      }
     end
-    const_set(compiler.name.split("::").last, worker)
+    const_set(names.last, worker)
   }
 end
 

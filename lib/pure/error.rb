@@ -11,13 +11,6 @@ module Pure
     end
   end
 
-  # No compiler found.
-  class NoCompilerError < Error
-    def initialize  #:nodoc:
-      super("no compiler found")
-    end
-  end
-
   # A missing function was encountered during a computation.
   class NoFunctionError < Error
     attr_reader :function_name  #:nodoc:
