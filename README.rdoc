@@ -52,10 +52,17 @@ Method and argument names have literal meaning within a
 argument to +area+ corresponds, by its literal name, to the +width+
 method.
 
-+Pure+ does not modify any of the standard classes.
+Pure does not modify any of the standard classes.
 
-+Pure+ has been tested on MRI 1.8.6, 1.8.7, 1.9.1, 1.9.2, and the
-latest jruby.
+Pure has been tested on MRI 1.8.6, 1.8.7, 1.9.1, 1.9.2, and
+jruby-1.4.
+
+== Links
+
+* Documentation: http://purefunctional.rubyforge.org
+* Download: http://rubyforge.org/frs/?group_id=8324
+* Rubyforge home: http://rubyforge.org/projects/purefunctional
+* Repository: http://github.com/quix/pure
 
 == Terminology
 
@@ -234,6 +241,30 @@ The left of side <tt>=></tt> is the function name.  The right side is
 an array containing the names of the function arguments.  The values
 of the function arguments are passed to the block.
 
+The next section explains the +fun_name+ call in this example.
+
+== Referencing Function and Argument Names
+
+Inside a pure function, +fun_name+ gives the name of the function and
++arg_names+ gives the names of its arguments.  In the previous example
+above,
+
+  files.each { |file|
+    fun file do
+      File.stat(fun_name.to_s)
+    end
+  }
+  
+Here, <tt>fun_name.to_s</tt> is exactly the same as +file+.  So why
+not call <tt>File.stat(file)</tt>?  Pure functions are extracted from
+their surrounding context and must therefore use function arguments as
+the sole means of communication.  In this case
+<tt>File.stat(file)</tt> references +file+ which lies outside the
+function definition.
+
+The above is strictly not necessary when the default worker (explained
+later) is used, however the best strategy is to ignore this detail.
+
 == Restrictions
 
 Since the grand scheme of Pure rests upon all functions and function
@@ -258,29 +289,7 @@ of course).
 A pure function cannot have default arguments.
 
 A pure function should not reference variables declared outside the
-function definition, as the next section explains.
-
-== Referencing Function and Argument Names
-
-Inside a pure function, +fun_name+ gives the name of the function and
-+arg_names+ gives the names of its arguments.  Notice in the "Dynamic
-Names" example above,
-
-  files.each { |file|
-    fun file do
-      File.stat(fun_name.to_s)
-    end
-  }
-  
-Here, <tt>fun_name.to_s</tt> is exactly the same as +file+.  So why
-not call <tt>File.stat(file)</tt>?  Pure functions are extracted from
-their surrounding context and must therefore use function arguments as
-the sole means of communication.  In this case
-<tt>File.stat(file)</tt> references +file+ which lies outside the
-function definition.
-
-The above is strictly not necessary when the default worker (explained
-later) is used, however the best strategy is to ignore this detail.
+function definition (see example in previous section).
 
 == Background
 
@@ -324,7 +333,7 @@ the methods of +ACCUMULATOR+ are thread-safe.
 
 Languages which are purely functional (e.g. Haskell) employ special
 constructs (e.g. monads) for dealing with side-effects.  This project
-aims to fulfill the converse with respect to Ruby.
+is roughly analogous to the converse with respect to Ruby.
 
 Haskell code is pure (non-side-effecting) by default, with non-pure
 operations being stuffed into monads.  Ruby code is non-pure
@@ -540,16 +549,18 @@ Pure::Compiler::RubyParser uses RubyParser and Ruby2Ruby together with
 a code transformer (for instantiating +fun+ definitions) to compile a
 function spec.
 
+== Tools
+
 Lobby your local ruby-core representative to add a built-in sexp
 extractor and compiler.  Lacking these tools, we are stuck this
-roundabout and inefficient process:
+inefficient roundabout process:
 
 * Ruby interpreter parses the source
 * RubyParser (redundantly) parses the source and converts it to an sexp
 * Ruby2Ruby converts the sexp to a string containing Ruby code
 * call +eval+ on the code string
 
-This could be reduced to:
+However this could be reduced to (for example):
 
 * Ruby interpreter parses the source
 * call Proc#to_sexp
