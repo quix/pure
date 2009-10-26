@@ -63,7 +63,7 @@ module Pure
           elsif sexp[0] == :iter and
               sexp[1][0] == :call and
               sexp[1][1] == nil and
-              sexp[1][2] == :fun
+              (sexp[1][2] == :fun || sexp[1][2] == :fun_map)
             @defs[sexp[1].line] = {
               :name => :__fun,
               :code => dup_sexp(sexp)

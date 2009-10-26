@@ -67,22 +67,8 @@ module Pure
     #
     # See README.rdoc for examples.
     #
-    def fun(*args, &block)
-      function_str, arg_data = (
-        if args.size == 1
-          arg = args.first
-          if arg.is_a? Hash
-            unless arg.size == 1
-              raise ArgumentError, "`fun' given hash of size != 1"
-            end
-            arg.to_a.first
-          else
-            [arg, []]
-          end
-        else
-          raise ArgumentError, "wrong number of arguments (#{args.size} for 1)"
-        end
-      )
+    def fun(arg, &block)
+      function_str, arg_data = parse_fun_arg(arg)
       arg_names = (
         if arg_data.is_a? Enumerable
           arg_data.map { |t| t.to_sym }
@@ -95,6 +81,47 @@ module Pure
         define_method(function_name, &block)
       }
       Extractor.record_function(self, :fun, function_name, arg_names, caller)
+      nil
+    end
+
+    #
+    # call-seq: fun_map name => enumerable do |elem|
+    #             ...
+    #           end
+    #
+    # Define an anonymous pure function which is applied to each
+    # element of the given enumerable.  The pure function _name_
+    # returns the result array.
+    #
+    # See README.rdoc for examples.
+    #
+    def fun_map(arg, &block)
+      function_name, elems = parse_fun_arg(arg)
+
+      function_name = function_name.to_sym
+      elems = elems.to_a
+
+      input_elem_names, output_elem_names = [:input, :output].map { |which|
+        (0...elems.size).map { |index|
+          "__elem_#{which}_#{index}_#{function_name}".to_sym
+        }
+      }
+
+      entry = ExtractedFunctions[parser][self]
+      code = Extractor.record_function(self, :fun, :__tmp, [], caller)[:code]
+      entry.delete(:__tmp)
+      
+      fun function_name => output_elem_names do |*result|
+        result
+      end
+      entry[function_name][:elems] = input_elem_names.zip(elems)
+
+      output_elem_names.zip(input_elem_names) { |output, input|
+        fun output => input do |*args|
+          block.call(*args)
+        end
+        entry[output][:code] = code
+      }
       nil
     end
 
@@ -132,6 +159,17 @@ module Pure
           }
         end
       }
+    end
+
+    def parse_fun_arg(arg)  #:nodoc:
+      if arg.is_a? Hash
+        unless arg.size == 1
+          raise ArgumentError, "`fun' given hash of size != 1"
+        end
+        arg.to_a.first
+      else
+        [arg, []]
+      end
     end
 
     # want 'fun' both documented and private; rdoc --all is bad

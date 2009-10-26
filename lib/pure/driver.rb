@@ -9,6 +9,9 @@ module Pure
           driver.define(name.to_sym) { value }
         }
         mod.each_function { |name, spec|
+          if elems = spec[:elems]
+            build_fun_map(driver, name, elems)
+          end
           node = driver.nodes[name]
           unless node and node.function
             function = @worker.define_function(spec)
@@ -28,6 +31,12 @@ module Pure
 
     def each_function_name(&block)
       @driver.nodes.each_key(&block)
+    end
+
+    def build_fun_map(driver, name, elems)
+      elems.each_with_index { |(elem_name, elem), i|
+        driver.define(elem_name) { elem }
+      }
     end
   end
 end

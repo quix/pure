@@ -218,7 +218,7 @@ Or more realistically,
 
   require 'pure/dsl'
   
-  stats = pure do
+  file_stats = pure do
     files = Dir["*"]
   
     files.each { |file|
@@ -227,12 +227,12 @@ Or more realistically,
       end
     }
   
-    fun :total_size => files do |*values|
-      values.inject(0) { |acc, stat| acc + stat.size }
+    fun :total_size => files do |*stats|
+      stats.inject(0) { |acc, stat| acc + stat.size }
     end
   end
 
-  stats.compute { |result|
+  file_stats.compute { |result|
     puts result["Rakefile"].size  # => 505
     puts result.total_size        # => 39355
   }
@@ -265,6 +265,38 @@ function definition.
 The above is strictly not necessary when the default worker (explained
 later) is used, however the best strategy is to ignore this detail.
 
+== Mapping an Enumerable in Parallel
+
+The convenience method +fun_map+ defines an anonymous pure function
+which is applied to each element of a given enumerable.
+
+  require 'pure/dsl'
+
+  numbers = pure do
+    fun_map :squares => [3, 4, 5] do |n|
+      n*n
+    end
+  end
+
+  p numbers.compute.squares  # => [9, 16, 25]
+
+The example from the "Dynamic Names" section is more easily written
+with +fun_map+,
+
+  require 'pure/dsl'
+  
+  file_stats = pure do
+    fun_map :stats => Dir["*"] do |file|
+      File.stat(file)
+    end
+  
+    def total_size(stats)
+      stats.inject(0) { |acc, stat| acc + stat.size }
+    end
+  end
+
+  puts file_stats.compute(3).total_size  # => 39355
+
 == Restrictions
 
 Since the grand scheme of Pure rests upon all functions and function
@@ -289,7 +321,7 @@ of course).
 A pure function cannot have default arguments.
 
 A pure function should not reference variables declared outside the
-function definition (see example in previous section).
+function definition.
 
 == Background
 

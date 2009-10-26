@@ -55,18 +55,20 @@ module Pure
           end
         end
 
+        FUN_RE = %r!\Afun(_map)?\Z!
+
         def process_fun(sexp)
           if sexp[0] == :method_add_block and sexp[1].is_a?(Array)
             line = (
               if sexp[1][0] == :command and
                   sexp[1][1].is_a?(Array) and
-                  sexp[1][1][1] == "fun"
+                  sexp[1][1][1] =~ FUN_RE
                 sexp[1][1][2][0]
               elsif sexp[1][0] == :method_add_arg and
                   sexp[1][1].is_a?(Array) and
                   sexp[1][1][0] == :fcall and
                   sexp[1][1][1].is_a?(Array) and
-                  sexp[1][1][1][1] == "fun"
+                  sexp[1][1][1][1] =~ FUN_RE
                 sexp[1][1][1][2][0]
               else
                 nil

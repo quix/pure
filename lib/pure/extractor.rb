@@ -37,8 +37,7 @@ module Pure
           # Use the __fun flag to verify the parser's discovery of a
           # `fun' call.
           #
-          extract(mod, :__fun, backtrace).
-          merge(:name => name, :args => args)
+          extract(mod, :__fun, backtrace).merge(:name => name, :args => args)
         end
       ).merge(
         :origin => origin,

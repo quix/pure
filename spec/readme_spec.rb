@@ -15,10 +15,15 @@ simple_sections = [
 
 Jumpstart.doc_to_spec(readme, *simple_sections)
 
-Jumpstart.doc_to_spec(readme, "Dynamic Names") { |expected, actual, index|
-  [expected, actual].each { |expr|
-    expr.should match(%r!\A[\d\s]+\Z!)
-  }
+sections = ["Dynamic Names", "Mapping an Enumerable in Parallel"]
+Jumpstart.doc_to_spec(readme, *sections) { |expected, actual, index|
+  if index == 1
+    [expected, actual].each { |expr|
+      expr.should match(%r!\A[\d\s]+\Z!)
+    }
+  else
+    expected.should == actual
+  end
 }
 
 Jumpstart.doc_to_spec(readme, "Worker Plugins") { |expected, actual, index|
