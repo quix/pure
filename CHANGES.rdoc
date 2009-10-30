@@ -1,6 +1,10 @@
 
 = Pure ChangeLog
 
+== Version 0.2.1
+
+* add fun_spec
+
 == Version 0.2.0
 
 * more docs
