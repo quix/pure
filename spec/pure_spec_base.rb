@@ -38,8 +38,8 @@ module CompilerWorker
     names = name.split("::")
     worker = Class.new Base do
       require path
-      @compiler = names.inject(Object) { |mod, name|
-        mod.const_get(name)
+      @compiler = names.inject(Object) { |mod, name0|
+        mod.const_get(name0)
       }
     end
     const_set(names.last, worker)
