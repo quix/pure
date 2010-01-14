@@ -34,6 +34,8 @@ module Pure
           case node
           when ::RedParse::MethodNode
             process_method_node(node)
+          when ::RedParse::CallNode
+            process_call_node(node)
           end
         end
         
@@ -55,9 +57,19 @@ module Pure
             :default => false, # TODO: whether any default args are present
           }
         end
-        
-        # TODO: process 'fun' definitions
-        def process_fun
+
+        def process_call_node(node)
+          if node[1] =~ %r!\Afun(_map)?\Z!
+            process_fun(node)
+          end
+        end
+
+        def process_fun(node)
+          line = node.startline
+          @defs[line] = {
+            :name => :__fun,
+            :code => node,
+          }
         end
       end
     end
