@@ -171,31 +171,6 @@ describe "pure" do
       }.should raise_error(ArgumentError)
     end
 
-    it "should raise error with &block unless Pure::Parser::Internal is used" do
-      code = lambda {
-        pure do
-          fun :f, &lambda { 33 }
-        end.compute(4).f.should == 33
-      }
-      if Pure.parser.name == "Pure::Parser::Internal"
-        code.should_not raise_error
-      else
-          code.should raise_error(Pure::ParseError)
-      end
-      
-      code = lambda {
-        pure do
-          t = lambda { 33 }
-          fun :f, &t
-        end.compute(4).f.should == 33
-      }
-      if Pure.parser.name == "Pure::Parser::Internal"
-        code.should_not raise_error
-      else
-        code.should raise_error(Pure::ParseError)
-      end
-    end
-
     it "should allow function names containing any characters" do
       %w[- / ? : ; . ! [ ] ( )].each { |char|
         pure do
