@@ -88,19 +88,3 @@ module Spec::Example::ExampleGroupMethods
     end
   end
 end
-
-#
-# Prevent Ruby2Ruby's destruction of the sexp.  In practice the
-# compiler resides on another ruby interpreter, making the destruction
-# harmless.
-#
-module Pure
-  module Compiler
-    class RubyParser
-      alias_method :compile_function__original, :compile_function
-      def compile_function(spec)
-        compile_function__original(Marshal.load(Marshal.dump(spec)))
-      end
-    end
-  end
-end
