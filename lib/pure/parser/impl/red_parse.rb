@@ -42,18 +42,20 @@ module Pure
         def process_method_node(node)
           line = node.startline
           name = node[1].to_sym
-          args = (
+          splat, args = (
             if node[2].nil?
-              []
+              [false, []]
+            elsif node[2].any? { |elem| elem.is_a? ::RedParse::UnaryStarNode }
+              [true, []]
             else
-              node[2].map { |var| var.first.to_sym }
+              [false, node[2].map { |var| var.first.to_sym }]
             end
           )
           @defs[line] = {
             :name => name,
             :args => args,
             :code => node,
-            :splat => false,   # TODO: whether splat arg is present
+            :splat => splat,
             :default => false, # TODO: whether any default args are present
           }
         end
