@@ -55,7 +55,11 @@ module Pure
             if splat or default or node[2].nil?
               []
             else
-              node[2].map { |var| var.first.to_sym }
+              node[2].map { |elem|
+                elem.first.to_sym
+              }.reject { |elem|
+                elem == :"&@"
+              }
             end
           )
           @defs[line] = {
