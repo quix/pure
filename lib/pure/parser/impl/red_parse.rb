@@ -8,6 +8,10 @@ module Pure
         def extract(mod, method_name, file, line)
           BaseParser.extract(mod, method_name, file, line, Processor)
         end
+
+        def compiler
+          %w[pure/compiler/red_parse Pure::Compiler::RedParse]
+        end
       end
 
       class Processor
