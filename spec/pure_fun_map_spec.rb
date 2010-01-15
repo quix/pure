@@ -19,7 +19,7 @@ describe "pure" do
           sleep(0.2)
         end
       end
-      epsilon = 0.05 + (RUBY_PLATFORM == "java" ? 99 : 0)
+      epsilon = 0.10 + (RUBY_PLATFORM == "java" ? 99 : 0)
       mod.compute(1) { |result|
         Benchmark.measure { result.sleeper }.real.should be_close(0.6, epsilon)
       }
