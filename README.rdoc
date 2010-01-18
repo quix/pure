@@ -574,7 +574,7 @@ may be reconstructed on another Ruby interpreter.
     puts result.add  # => 77
   end
 
-See http://github.com/quix/tiamat for an example of a
+See http://tiamat.rubyforge.org for an example of a
 multi-core/multi-machine worker plugin for Pure.
 
 Pure::Compiler::RubyParser uses RubyParser and Ruby2Ruby together with
