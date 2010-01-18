@@ -581,23 +581,6 @@ Pure::Compiler::RubyParser uses RubyParser and Ruby2Ruby together with
 a code transformer (for instantiating +fun+ definitions) to compile a
 function spec.
 
-== Tools
-
-Lobby your local ruby-core representative to add a built-in sexp
-extractor and compiler.  Lacking these tools, we are stuck this
-inefficient roundabout process:
-
-* Ruby interpreter parses the source
-* RubyParser (redundantly) parses the source and converts it to an sexp
-* Ruby2Ruby converts the sexp to a string containing Ruby code
-* call +eval+ on the code string
-
-However this could be reduced to (for example):
-
-* Ruby interpreter parses the source
-* call Proc#to_sexp
-* call Proc.from_sexp
-
 == Author
 
 * James M. Lawrence <quixoticsycophant@gmail.com>
