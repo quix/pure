@@ -1,17 +1,20 @@
-
 $LOAD_PATH.unshift "devel"
 require "jumpstart"
 
 Jumpstart.new "pure" do |s|
-  s.developer("James M. Lawrence", "quixoticsycophant@gmail.com")
-  s.rubyforge_user = "quix"
-  s.rubyforge_name = "purefunctional"
-  s.dependency("comp_tree", ">= 1.0.0")
-  s.dependency("ruby_parser", ">= 2.0.4")
-  s.extra_dev_deps = [
+  s.developers << ["James M. Lawrence", "quixoticsycophant@gmail.com"]
+  s.github_user = "quix"
+
+  s.dependencies = [
+    ["comp_tree", ">= 1.0.0"],
+    ["ruby_parser", ">= 2.0.4"],
+  ]
+                    
+  s.development_dependencies = [
     ["ruby2ruby", ">= 1.2.2"],
     ["rspec", ">= 1.2.6"],
   ]
+
   s.rdoc_files = %w[
     lib/pure/pure.rb
     lib/pure/pure_module.rb

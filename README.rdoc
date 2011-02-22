@@ -39,9 +39,9 @@ Language-level support for automatic parallelism and lazy evaluation.
 
   % gem install pure
 
-Or for the (non-gem) .tgz package,
+Or from the (non-gem) .tgz package,
 
-  % ruby install.rb [--uninstall]
+  % rake install
 
 == Description
 
@@ -59,9 +59,9 @@ jruby-1.4.
 
 == Links
 
-* Documentation: http://purefunctional.rubyforge.org
-* Download: http://rubyforge.org/frs/?group_id=8324
-* Rubyforge home: http://rubyforge.org/projects/purefunctional
+* Home: http://quix.github.com/pure
+* Feature Requests, Bug Reports: http://github.com/quix/pure/issues
+* Manual Download: http://github.com/quix/pure/archives/master
 * Repository: http://github.com/quix/pure
 
 == Terminology
