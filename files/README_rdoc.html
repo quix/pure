@@ -1,0 +1,366 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang='en'>
+  <head>
+    <title>README.rdoc</title>
+    <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
+    <link href='../css/style.css' media='screen' rel='stylesheet' type='text/css'>
+    <script type='text/javascript'>
+      //<![CDATA[
+        function popupCode(url) {
+          window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+        }
+        
+        function toggleCode(id) {
+          var code = document.getElementById(id)
+        
+          code.style.display = code.style.display != 'block' ? 'block' : 'none'
+          return true
+        }
+        
+        // Make codeblocks hidden by default
+        document.writeln('<' + 'style type="text/css">.method .source pre { display: none }<\/style>')
+      //]]>
+    </script>
+  </head>
+  <body class='page'>
+    <div class='file' id='wrapper'>
+      <div class='header'>
+        <div class='name'>README.rdoc</div>
+        <div class='paths'>
+          README.rdoc
+        </div>
+        <div class='last-update'>
+          Last Update:
+          <span class='datetime'>2011-05-17 22:45:57 -0400</span>
+        </div>
+      </div>
+      <div id='content'>
+        <div id='text'>
+          <div id='description'>
+            <h1><a href="../classes/Pure.html">Pure</a></h1>
+            <h2>Summary</h2>
+            <p>
+            Language-level support for automatic parallelism and lazy evaluation.
+            </p>
+            <h2>Synopsis</h2>
+            <pre>require 'pure'&#x000A;&#x000A;geometry = Pure.define do&#x000A;  def area(width, height)&#x000A;    width*height&#x000A;  end&#x000A;&#x000A;  def width(border)&#x000A;    7 + border&#x000A;  end&#x000A;&#x000A;  def height(border)&#x000A;    5 + border&#x000A;  end&#x000A;&#x000A;  def border&#x000A;    2&#x000A;  end&#x000A;end&#x000A;&#x000A;# Compute the area using 3 parallel threads.&#x000A;puts geometry.compute(3).area&#x000A;# =&gt; 63&#x000A;&#x000A;# We've done this computation.&#x000A;puts((7 + 2)*(5 + 2))&#x000A;# =&gt; 63</pre>
+            <h2>Install</h2>
+            <pre>% gem install pure</pre>
+            <p>
+            Or from the (non-gem) .tgz package,
+            </p>
+            <pre>% rake install</pre>
+            <h2>Description</h2>
+            <p>
+            <a href="../classes/Pure.html">Pure</a> imports aspects of the pure
+            functional paradigm into Ruby.
+            </p>
+            <p>
+            Method and argument names have literal meaning within a
+            <tt>Pure.define</tt> block.  In the above example, the <tt>width</tt>
+            argument to <tt>area</tt> corresponds, by its literal name, to the
+            <tt>width</tt> method.
+            </p>
+            <p>
+            <a href="../classes/Pure.html">Pure</a> does not modify any of the standard
+            classes.
+            </p>
+            <p>
+            <a href="../classes/Pure.html">Pure</a> has been tested on MRI 1.8.6,
+            1.8.7, 1.9.1, 1.9.2, and jruby-1.4.
+            </p>
+            <h2>Links</h2>
+            <ul>
+            <li><p>
+            Home: <a target="_top" href="http://quix.github.com/pure">quix.github.com/pure</a>
+            </p>
+            </li>
+            <li><p>
+            Feature Requests, Bug Reports: <a
+            href="http://github.com/quix/pure/issues">github.com/quix/pure/issues</a>
+            </p>
+            </li>
+            <li><p>
+            Manual Download: <a
+            href="http://github.com/quix/pure/archives/master">github.com/quix/pure/archives/master</a>
+            </p>
+            </li>
+            <li><p>
+            Repository: <a target="_top" href="http://github.com/quix/pure">github.com/quix/pure</a>
+            </p>
+            </li>
+            </ul>
+            <h2>Terminology</h2>
+            <p>
+            <tt>Pure.define</tt> returns a Module instance, called a <em>pure
+            module</em>.  The methods of a pure module are called <em>pure
+            functions</em>.
+            </p>
+            <h2>DSL</h2>
+            <p>
+            The pseudo-keyword <tt>pure</tt>, an alias of Pure.define, is included in
+            the global scope with <tt>require 'pure/dsl'</tt>.  It is also made
+            available by including <a href="../classes/Pure/DSL.html">Pure::DSL</a>
+            into a class or module.
+            </p>
+            <h2>Overrides</h2>
+            <p>
+            An options hash given to <tt>compute</tt> is used for overriding functions
+            in the pure module.  If the name of a function matches a hash key, the
+            function will be replaced with the corresponding hash value.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;greet = pure do&#x000A;  def hello(name)&#x000A;    &quot;Hello, #{name}.&quot;&#x000A;  end&#x000A;&#x000A;  def name&#x000A;    &quot;Bob&quot;&#x000A;  end&#x000A;end&#x000A;&#x000A;puts greet.compute(9).hello&#x000A;# =&gt; Hello, Bob.&#x000A;&#x000A;puts greet.compute(9, :name =&gt; &quot;Ralph&quot;).hello&#x000A;# =&gt; Hello, Ralph.&#x000A;&#x000A;puts greet.compute(9, :hello =&gt; &quot;Good evening.&quot;).hello&#x000A;# =&gt; Good evening.</pre>
+            <h2>Default Number of Functions in Parallel</h2>
+            <p>
+            The <em>num_parallel</em> argument to compute() may be omitted, in which
+            case the <em>num_parallel</em> determination falls to <tt>Pure.worker</tt>,
+            an object described later in this document.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;Pure.worker.num_parallel = 2&#x000A;&#x000A;result = pure do&#x000A;  def f(x, y)&#x000A;    x + y&#x000A;  end&#x000A;&#x000A;  def x&#x000A;    33&#x000A;  end&#x000A;end.compute(:y =&gt; 44)&#x000A;&#x000A;# compute with 2 parallel threads&#x000A;puts result.f  # =&gt; 77</pre>
+            <h2>Delegates and Blocks</h2>
+            <p>
+            When no block is given to <tt>compute</tt>, it returns a delegate for the
+            computation.  The computation results are stored in the lazily-evaluated
+            attributes of the delegate.  A computation is performed only when an
+            attribute is requested, and an attribute is never recomputed.
+            </p>
+            <p>
+            When <tt>compute</tt> is given a block, the delegate is passed to the block
+            and the return value of <tt>compute</tt> is the result of the block.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;geometry = pure do&#x000A;  def area(width, height)&#x000A;    width*height&#x000A;  end&#x000A;&#x000A;  def width(border)&#x000A;    7 + border&#x000A;  end&#x000A;&#x000A;  def height(border)&#x000A;    5 + border&#x000A;  end&#x000A;end&#x000A;&#x000A;area = geometry.compute :border =&gt; 2 do |result|&#x000A;  puts result.border     # =&gt; 2&#x000A;  puts result[:border]   # =&gt; 2&#x000A;&#x000A;  puts result.width      # =&gt; 9&#x000A;  puts result.height     # =&gt; 7&#x000A;&#x000A;  result.area&#x000A;end&#x000A;&#x000A;puts area  # =&gt; 63</pre>
+            <p>
+            Function results may also be accessed with <tt>[]</tt>, as shown in
+            <tt>result[:border]</tt> above.
+            </p>
+            <h2>Combining <a href="../classes/Pure.html">Pure</a> Modules</h2>
+            <p>
+            <a href="../classes/Pure.html">Pure</a> modules are regular Module
+            instances.  They may be combined freely with <tt>include</tt>.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;greet = pure do&#x000A;  def hello(name)&#x000A;    &quot;Hello, #{name}.&quot;&#x000A;  end&#x000A;end&#x000A;&#x000A;ralph = pure do&#x000A;  include greet&#x000A;  def name&#x000A;    &quot;Ralph&quot;&#x000A;  end&#x000A;end&#x000A;&#x000A;puts ralph.compute.hello&#x000A;# =&gt; Hello, Ralph.</pre>
+            <h2>Dynamic Names</h2>
+            <p>
+            The pseudo-keyword <tt>fun</tt> is provided for defining a pure function
+            whose name or arguments are unknown at compile time.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;geometry = pure do&#x000A;  fun :area =&gt; [:width, :height] do |w, h|&#x000A;    w*h&#x000A;  end&#x000A;&#x000A;  def width&#x000A;    4&#x000A;  end&#x000A;&#x000A;  fun :height do&#x000A;    5&#x000A;  end&#x000A;end&#x000A;&#x000A;puts geometry.compute.area  # =&gt; 20</pre>
+            <p>
+            Or more realistically,
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;file_stats = pure do&#x000A;  files = Dir[&quot;*&quot;]&#x000A;&#x000A;  files.each { |file|&#x000A;    fun file do&#x000A;      File.stat(fun_name.to_s)&#x000A;    end&#x000A;  }&#x000A;&#x000A;  fun :total_size =&gt; files do |*stats|&#x000A;    stats.inject(0) { |acc, stat| acc + stat.size }&#x000A;  end&#x000A;end&#x000A;&#x000A;file_stats.compute { |result|&#x000A;  puts result[&quot;Rakefile&quot;].size  # =&gt; 505&#x000A;  puts result.total_size        # =&gt; 39355&#x000A;}</pre>
+            <p>
+            The left of side <tt>=&gt;</tt> is the function name.  The right side is an
+            array containing the names of the function arguments.  The values of the
+            function arguments are passed to the block.
+            </p>
+            <p>
+            The next section explains the <tt>fun_name</tt> call in this example.
+            </p>
+            <h2>Referencing Function and Argument Names</h2>
+            <p>
+            Inside a pure function, <tt>fun_name</tt> gives the name of the function
+            and <tt>arg_names</tt> gives the names of its arguments.  In the previous
+            example above,
+            </p>
+            <pre>files.each { |file|&#x000A;  fun file do&#x000A;    File.stat(fun_name.to_s)&#x000A;  end&#x000A;}&#x000A;</pre>
+            <p>
+            Here, <tt>fun_name.to_s</tt> is exactly the same as <tt>file</tt>.  So why
+            not call <tt>File.stat(file)</tt>?  <a href="../classes/Pure.html">Pure</a>
+            functions are extracted from their surrounding context and must therefore
+            use function arguments as the sole means of communication.  In this case
+            <tt>File.stat(file)</tt> references <tt>file</tt> which lies outside the
+            function definition.
+            </p>
+            <p>
+            The above is strictly not necessary when the default worker (explained
+            later) is used, however the best strategy is to ignore this detail.
+            </p>
+            <h2>Mapping an Enumerable in Parallel</h2>
+            <p>
+            The convenience method <tt>fun_map</tt> defines an anonymous pure function
+            which is applied to each element of a given enumerable.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;numbers = pure do&#x000A;  fun_map :squares =&gt; [3, 4, 5] do |n|&#x000A;    n*n&#x000A;  end&#x000A;end&#x000A;&#x000A;p numbers.compute.squares  # =&gt; [9, 16, 25]</pre>
+            <p>
+            The example from the &#8220;Dynamic Names&#8221; section is more easily
+            written with <tt>fun_map</tt>,
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;file_stats = pure do&#x000A;  fun_map :stats =&gt; Dir[&quot;*&quot;] do |file|&#x000A;    File.stat(file)&#x000A;  end&#x000A;&#x000A;  def total_size(stats)&#x000A;    stats.inject(0) { |acc, stat| acc + stat.size }&#x000A;  end&#x000A;end&#x000A;&#x000A;puts file_stats.compute(3).total_size  # =&gt; 39355</pre>
+            <h2>Restrictions</h2>
+            <p>
+            Since the grand scheme of <a href="../classes/Pure.html">Pure</a> rests
+            upon all functions and function arguments having a name, a pure function
+            defined with <tt>def</tt> cannot have a <tt>*splat</tt> argument. 
+            Naturally this restriction does not apply to pure functions defined with
+            <tt>fun</tt>.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;&#x000A;pure do&#x000A;  def f(*args)  # =&gt; raises Pure::SplatError&#x000A;  end&#x000A;&#x000A;  fun :g =&gt; [:x, :y] do |*args|  # OK&#x000A;    args.map { |a| a**2 }&#x000A;  end&#x000A;end</pre>
+            <p>
+            A block is never passed to a pure function (except if called manually, of
+            course).
+            </p>
+            <p>
+            A pure function cannot have default arguments.
+            </p>
+            <p>
+            A pure function should not reference variables declared outside the
+            function definition.
+            </p>
+            <h2>Background</h2>
+            <p>
+            The user should have a basic understanding of <em>functional
+            programming</em> (see for example <a
+            href="http://en.wikipedia.org/wiki/Functional_programming">en.wikipedia.org/wiki/Functional_programming</a>)
+            and the meaning of <em>side effects</em>.
+            </p>
+            <p>
+            Every pure function you define must explicitly depend on the data it uses.
+            </p>
+            <pre>#&#x000A;# BAD example: depending on state DATA.value&#x000A;#&#x000A;geometry = pure do&#x000A;  def area(width, height)&#x000A;    width*height - DATA.value&#x000A;  end&#x000A;end&#x000A;  </pre>
+            <p>
+            Unless offset <tt>DATA.value</tt> is really a constant, the computation
+            result is in general not well-defined.
+            </p>
+            <p>
+            Just as depending on some changeable state is bad, it is likewise bad to
+            affect a state (to produce a <em>side effect</em>).
+            </p>
+            <pre>#&#x000A;# BAD example: affecting state&#x000A;#&#x000A;geometry = pure do&#x000A;  def area(width, height)&#x000A;    ACCUMULATOR.add &quot;more data&quot;&#x000A;    width*height&#x000A;  end&#x000A;end&#x000A;  </pre>
+            <p>
+            Given a pure computation where functions are modifying
+            <tt>ACCUMULATOR</tt>, the end state of <tt>ACCUMULATOR</tt> is not
+            well-defined, even if the methods of <tt>ACCUMULATOR</tt> are thread-safe.
+            </p>
+            <h2>Philosophy</h2>
+            <p>
+            Languages which are purely functional (e.g. Haskell) employ special
+            constructs (e.g. monads) for dealing with side-effects.  This project is
+            roughly analogous to the converse with respect to Ruby.
+            </p>
+            <p>
+            Haskell code is pure (non-side-effecting) by default, with non-pure
+            operations being stuffed into monads.  Ruby code is non-pure
+            (side-effecting) by default, with pure code being stuffed into
+            <tt>pure</tt> blocks.
+            </p>
+            <h2>Purpose</h2>
+            <p>
+            <a href="../classes/Pure.html">Pure</a> has two main goals:
+            </p>
+            <ul>
+            <li><p>
+            Parallelize system-intensive code, e.g. system() calls.
+            </p>
+            </li>
+            <li><p>
+            Provide a framework for parallelizing Ruby code across an arbitrary number
+            of cores/machines.
+            </p>
+            </li>
+            </ul>
+            <p>
+            Due to the global VM lock in Ruby 1.9, the actual execution of Ruby VM
+            instructions is not parallelized.  However when a Ruby thread is blocking
+            during a system call, other threads will be executed. Contrariwise in Ruby
+            1.8 the whole interpreter is blocked during a system call.
+            </p>
+            <p>
+            The next section addresses the second point above.
+            </p>
+            <h2>Technical Details</h2>
+            <h3>Parser Plugins</h3>
+            <p>
+            <a href="../classes/Pure.html">Pure</a> uses a parser plugin to extract the
+            <tt>def</tt> and <tt>fun</tt> definitions inside a pure module.  Three
+            parsers are bundled with <a href="../classes/Pure.html">Pure</a>,
+            </p>
+            <ul>
+            <li><p>
+            Pure::Parser::Internal &#8212; <tt>require 'pure/parser/internal'</tt>
+            &#8212; ruby-1.9.2 only
+            </p>
+            </li>
+            <li><p>
+            Pure::Parser::Ripper &#8212; <tt>require 'pure/parser/ripper'</tt> &#8212;
+            ruby-1.9 only
+            </p>
+            </li>
+            <li><p>
+            Pure::Parser::RubyParser &#8212; <tt>require 'pure/parser/ruby_parser'</tt>
+            &#8212; any ruby
+            </p>
+            </li>
+            </ul>
+            <pre></pre>
+            <p>
+            The default is tried in that order.
+            </p>
+            <p>
+            The current parser may be changed via the <tt>Pure.parser</tt> attribute. 
+            A pure module is tied to a parser when the module is created.
+            </p>
+            <p>
+            The only requirement for a parser plugin is to properly implement an
+            extract() method.
+            </p>
+            <h3>Worker Plugins</h3>
+            <p>
+            A worker plugin is a class which defines what happens when a pure function
+            is triggered to execute.  A worker instance is tied to the computation
+            delegate returned by compute().
+            </p>
+            <p>
+            The default worker looks like this:
+            </p>
+            <pre>module Pure&#x000A;  class NativeWorker&#x000A;    attr_reader :num_parallel&#x000A;&#x000A;    def define_function_begin(pure_module, num_parallel)&#x000A;      @num_parallel = num_parallel || self.class.num_parallel&#x000A;      @class = Class.new Names do&#x000A;        include pure_module&#x000A;      end&#x000A;    end&#x000A;&#x000A;    def define_function(spec)&#x000A;      lambda { |*args|&#x000A;        @class.new(spec[:name], spec[:args]).send(spec[:name], *args)&#x000A;      }&#x000A;    end&#x000A;&#x000A;    def define_function_end&#x000A;    end&#x000A;&#x000A;    class &lt;&lt; self&#x000A;      attr_accessor :num_parallel&#x000A;    end&#x000A;    @num_parallel = 1&#x000A;  end&#x000A;end</pre>
+            <p>
+            The following example illustrates the internals.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;require 'pure/parser/ruby_parser'&#x000A;&#x000A;class FakeWorker&#x000A;  #&#x000A;  # This method is called for each pure function in the pure module.&#x000A;  #&#x000A;  # Returns a lambda which computes the function described by spec.&#x000A;  #&#x000A;  # For this fake worker, we just return the function info.&#x000A;  #&#x000A;  def define_function(spec)&#x000A;    lambda { |*args|&#x000A;      [spec, args]&#x000A;    }&#x000A;  end&#x000A;  &#x000A;  #&#x000A;  # Called before all define_function calls.&#x000A;  #&#x000A;  # pure_module is the receiver of compute().&#x000A;  #&#x000A;  # num_parallel is the hint passed to compute(), or nil if no&#x000A;  # hint was given.  A worker is free to ignore it, as we do here.&#x000A;  #&#x000A;  def define_function_begin(pure_module, num_parallel)&#x000A;  end&#x000A;  &#x000A;  #&#x000A;  # Called after all define_function calls.&#x000A;  #&#x000A;  def define_function_end&#x000A;  end&#x000A;&#x000A;  #&#x000A;  # When a computation begins, the parallelizing engine asks the&#x000A;  # worker how many functions to run in parallel.&#x000A;  #&#x000A;  def num_parallel&#x000A;    2&#x000A;  end&#x000A;&#x000A;  class &lt;&lt; self&#x000A;    #&#x000A;    # A num_parallel hint for this worker.  A worker is free to&#x000A;    # ignore this as well.&#x000A;    #&#x000A;    attr_accessor :num_parallel&#x000A;  end&#x000A;end&#x000A;&#x000A;adder = pure(Pure::Parser::RubyParser) do&#x000A;  def add(left, right)&#x000A;    left + right&#x000A;  end&#x000A;end&#x000A;&#x000A;require 'pp'&#x000A;pp adder.compute(FakeWorker, :left =&gt; 33, :right =&gt; 44).add&#x000A;&#x000A;#### output:&#x000A;&#x000A;[{:name=&gt;:add,&#x000A;  :args=&gt;[:left, :right],&#x000A;  :code=&gt;&#x000A;   s(:defn,&#x000A;    :add,&#x000A;    s(:args, :left, :right),&#x000A;    s(:scope,&#x000A;     s(:block, s(:call, s(:lvar, :left), :+, s(:arglist, s(:lvar, :right)))))),&#x000A;  :splat=&gt;false,&#x000A;  :default=&gt;false,&#x000A;  :file=&gt;&quot;fake_worker.rb&quot;,&#x000A;  :line=&gt;29,&#x000A;  :origin=&gt;:def,&#x000A;  :parser=&gt;&quot;Pure::Parser::RubyParser&quot;},&#x000A; [33, 44]]</pre>
+            <p>
+            Note the Pure::Parser::Internal parser will not generate a <tt>:code</tt>
+            entry, as it just calls Method#parameters and does no parsing.
+            </p>
+            <h3>Compilers</h3>
+            <p>
+            A compiler converts a function spec (the hash in the previous output) into
+            a callable Ruby object.
+            </p>
+            <p>
+            With the addition of a compiler, we have all the components necessary for
+            distributing computations.  A function definition and its inputs may be
+            reconstructed on another Ruby interpreter.
+            </p>
+            <pre>require 'pure/dsl'&#x000A;require 'pure/parser/ruby_parser'&#x000A;require 'pure/compiler/ruby_parser'&#x000A;&#x000A;class ExternalWorker&#x000A;  def initialize&#x000A;    @compiler = Pure::Compiler::RubyParser.new&#x000A;  end&#x000A;&#x000A;  def define_function(spec)&#x000A;    lambda { |*args|&#x000A;      @compiler.evaluate_function(spec, *args)&#x000A;    }&#x000A;  end&#x000A;    &#x000A;  def define_function_begin(pure_module, num_parallel)&#x000A;  end&#x000A;      &#x000A;  def define_function_end&#x000A;  end&#x000A;      &#x000A;  def num_parallel&#x000A;    2&#x000A;  end&#x000A;      &#x000A;  class &lt;&lt; self&#x000A;    attr_accessor :num_parallel&#x000A;  end&#x000A;end&#x000A;&#x000A;pure(Pure::Parser::RubyParser) do&#x000A;  def add(left, right)&#x000A;    left + right&#x000A;  end&#x000A;end.compute(ExternalWorker, :left =&gt; 33, :right =&gt; 44) do |result|&#x000A;  puts result.add  # =&gt; 77&#x000A;end</pre>
+            <p>
+            See <a target="_top" href="http://tiamat.rubyforge.org">tiamat.rubyforge.org</a> for an
+            example of a multi-core/multi-machine worker plugin for <a
+            href="../classes/Pure.html">Pure</a>.
+            </p>
+            <p>
+            Pure::Compiler::RubyParser uses RubyParser and Ruby2Ruby together with a
+            code transformer (for instantiating <tt>fun</tt> definitions) to compile a
+            function spec.
+            </p>
+            <h2>Author</h2>
+            <ul>
+            <li><p>
+            James M. Lawrence <quixoticsycophant@gmail.com>
+            </p>
+            </li>
+            </ul>
+            <h2>License</h2>
+            <pre>Copyright (c) 2009 James M. Lawrence.  All rights reserved.&#x000A;&#x000A;Permission is hereby granted, free of charge, to any person&#x000A;obtaining a copy of this software and associated documentation files&#x000A;(the &quot;Software&quot;), to deal in the Software without restriction,&#x000A;including without limitation the rights to use, copy, modify, merge,&#x000A;publish, distribute, sublicense, and/or sell copies of the Software,&#x000A;and to permit persons to whom the Software is furnished to do so,&#x000A;subject to the following conditions:&#x000A;&#x000A;The above copyright notice and this permission notice shall be&#x000A;included in all copies or substantial portions of the Software.&#x000A;&#x000A;THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,&#x000A;EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF&#x000A;MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND&#x000A;NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS&#x000A;BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN&#x000A;ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN&#x000A;CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE&#x000A;SOFTWARE.</pre>
+          </div>
+          <div id='context'>
+          </div>
+        </div>
+      </div>
+      <div id='footer-push'></div>
+    </div>
+    <div id='footer'>
+      <a target="docwin" href="http://github.com/mislav/hanna/tree/master"><strong>Hanna</strong> RDoc template</a>
+    </div>
+  </body>
+</html>
