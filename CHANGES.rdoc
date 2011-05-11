@@ -1,5 +1,9 @@
 
-= Pure ChangeLog
+= pure Changes
+
+== Version 0.2.2
+
+* update build tools
 
 == Version 0.2.1
 
