@@ -1,9 +1,10 @@
 $LOAD_PATH.unshift "devel"
-require "jumpstart"
+require "levitate"
 
-Jumpstart.new "pure" do |s|
+Levitate.new "pure" do |s|
   s.developers << ["James M. Lawrence", "quixoticsycophant@gmail.com"]
-  s.github_user = "quix"
+  s.username = "quix"
+  s.rubyforge_info = ["quix", "purefunctional"]
 
   s.dependencies = [
     ["comp_tree", ">= 1.0.0"],
@@ -12,7 +13,7 @@ Jumpstart.new "pure" do |s|
                     
   s.development_dependencies = [
     ["ruby2ruby", ">= 1.2.2"],
-    ["rspec", ">= 1.2.6"],
+    ["rspec", "~> 1.3"],
   ]
 
   s.rdoc_files = %w[

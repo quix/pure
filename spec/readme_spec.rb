@@ -1,6 +1,5 @@
 require File.dirname(__FILE__) + '/pure_spec_base'
-
-require "jumpstart"
+require 'levitate'
 
 readme = "README.rdoc"
 
@@ -13,10 +12,10 @@ simple_sections = [
  "Default Number of Functions in Parallel",
 ]
 
-Jumpstart.doc_to_spec(readme, *simple_sections)
+Levitate.doc_to_spec(readme, *simple_sections)
 
 sections = ["Dynamic Names", "Mapping an Enumerable in Parallel"]
-Jumpstart.doc_to_spec(readme, *sections) { |expected, actual, index|
+Levitate.doc_to_spec(readme, *sections) { |expected, actual, index|
   if index == 1
     [expected, actual].each { |expr|
       expr.should match(%r!\A[\d\s]+\Z!)
@@ -26,7 +25,7 @@ Jumpstart.doc_to_spec(readme, *sections) { |expected, actual, index|
   end
 }
 
-Jumpstart.doc_to_spec(readme, "Worker Plugins") { |expected, actual, index|
+Levitate.doc_to_spec(readme, "Worker Plugins") { |expected, actual, index|
   case index
   when 0, 2
     actual.should == expected

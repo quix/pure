@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/pure_spec_base'
 
-require 'jumpstart'
+require 'levitate'
 
 describe "pure" do
   describe "`fun' definitions" do
@@ -81,7 +81,7 @@ describe "pure" do
     end
 
     it "should be overwritten by later `def' definitions" do
-      Jumpstart::Ruby.no_warnings {
+      Levitate.no_warnings {
         pure do
           fun :f do
             44
@@ -95,7 +95,7 @@ describe "pure" do
     end
 
     it "should overwrite earlier `def' definitions" do
-      Jumpstart::Ruby.no_warnings {
+      Levitate.no_warnings {
         pure do
           def f
             33

@@ -23,7 +23,7 @@ end
 require 'rbconfig'
 
 # uneven results in windows
-unless Config::CONFIG["host"] =~ %r!(mswin|cygwin|mingw)!
+unless RbConfig::CONFIG["host"] =~ %r!(mswin|cygwin|mingw)!
   describe "compute" do
     describe "with timed example" do
       it "should run with 1 thread" do

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/pure_spec_base'
 
-require 'jumpstart'
+require 'levitate'
 
 describe "pure" do
   it "should not be available without require 'pure/dsl'" do
@@ -18,7 +18,7 @@ describe "pure" do
       end
     }
     lambda {
-      Jumpstart::Ruby.run("-e", code)
+      Levitate.run("-e", code)
     }.should_not raise_error
   end
 
